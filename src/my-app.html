@@ -22,6 +22,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="my-icons.html">
 
+<link rel="lazy-import" href="my-data.html">
 <link rel="lazy-import" href="my-view1.html">
 <link rel="lazy-import" href="my-view2.html">
 <link rel="lazy-import" href="my-view3.html">
@@ -85,9 +86,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
         <app-toolbar>Menu</app-toolbar>
         <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
+          <a name="data" href="[[rootPath]]data">Datos personales</a>
           <a name="view1" href="[[rootPath]]view1">View One</a>
           <a name="view2" href="[[rootPath]]view2">View Two</a>
           <a name="view3" href="[[rootPath]]view3">View Three</a>
+          <a name="#" href="#" on-tap="logout">Salir</a>
         </iron-selector>
       </app-drawer>
 
@@ -97,7 +100,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-header slot="header" condenses reveals effects="waterfall">
           <app-toolbar>
             <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
-            <div main-title>My App</div>
+            <div main-title>Hola, {{clientName}}</div>
           </app-toolbar>
         </app-header>
 
@@ -106,6 +109,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             attr-for-selected="name"
             fallback-selection="view404"
             role="main">
+          <my-data name="data"></my-data>
           <my-view1 name="view1"></my-view1>
           <my-view2 name="view2"></my-view2>
           <my-view3 name="view3"></my-view3>
@@ -130,6 +134,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             reflectToAttribute: true,
             observer: '_pageChanged',
           },
+          clientName: {
+            type: String,
+            value: 'NA'
+          },
+          clientNumber: {
+            type: Number
+          },
           routeData: Object,
           subroute: Object,
           // This shouldn't be neccessary, but the Analyzer isn't picking up
@@ -147,8 +158,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _routePageChanged(page) {
         // If no page was found in the route data, page will be an empty string.
         // Default to 'view1' in that case.
-        this.page = page || 'view1';
-
+        this.page = page || 'data';
+        if (sessionStorage.clientName === undefined){
+          location.href = 'login.html';
+        }
+        this.clientName = sessionStorage.clientName;
+        this.clientNumber = sessionStorage.clientNumber;
         // Close a non-persistent drawer when the page & route are changed.
         if (!this.$.drawer.persistent) {
           this.$.drawer.close();
@@ -160,13 +175,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         const resolvedPageUrl = this.resolveUrl('my-' + page + '.html');
         Polymer.importHref(
             resolvedPageUrl,
-            null,
+            function() {
+              console.log('Se cargará todo.');
+            },
             this._showPage404.bind(this),
             true);
       }
 
       _showPage404() {
         this.page = 'view404';
+      }
+
+      logout(){
+        sessionStorage.removeItem('clientName');
+        sessionStorage.removeItem('clientNumber');
+        location.href = 'login.html';
       }
     }
 

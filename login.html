@@ -7,7 +7,7 @@
 	  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
 	  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-    <title>Mi Proyecto</title>
+    <title>Proyecto TechU - Login</title>
     <!-- BOOTSTRAP CDN -->
     <style>
     	.container {
@@ -38,23 +38,39 @@
 	        <input class="form-check-input" type="checkbox" name="remember"> Recordarme
 	      </label>
 	    </div>
+	    <div id="message"></div>
 	    <button type="submit" class="btn btn-primary">Iniciar</button>
 	  </form>
 	</div>
 	<script>
-		var endpoint = "http://localhost:4000/users/v0/users";
+		if (sessionStorage.clientName !== undefined && sessionStorage.clientName !== ''){
+			location.href = '/';
+		}
+		var endpoint = "http://localhost:4000";
+		var pathUsers = "/users/v0/users";
 	  	var form = document.querySelector("form");
 	  	form.addEventListener("submit", event => {
 	  		var username = form.elements.username.value;
 	  		var password = form.elements.password.value;
 	  		var xhttp = new XMLHttpRequest();
 			var params =  "?username=" + username + "&password=" + password;
-			xhttp.open("GET", endpoint + params, false);
+			xhttp.open("GET", endpoint+ pathUsers + params, false);
 			xhttp.send();
-    		var json = JSON.parse(xhttp.responseText);
-       		alert(json.message);
+    		var data = JSON.parse(xhttp.responseText);
+    		console.log(xhttp.readyState + " !! " + xhttp.status);
        		if (xhttp.status === 200){
+       			alert(data[0].message);  
+       			var pathClient = "/clients/v0/clients?client=" + data[0].client;
+       			xhttp.open("GET", endpoint + pathClient, false);
+				xhttp.send();
+				if (xhttp.status === 200){
+					data = JSON.parse(xhttp.responseText);
+					sessionStorage.clientName = data[0].name;
+					sessionStorage.clientNumber = data[0].client;
+				}
        			location.href = '/';
+       		}else{
+       			alert(data.message);
        		}
 
 	    	event.preventDefault();
