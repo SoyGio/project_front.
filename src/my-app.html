@@ -67,6 +67,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         color: black;
         font-weight: bold;
       }
+
+      .iron-selected {
+        background: #eee;
+      }
     </style>
 
     <app-location
@@ -90,7 +94,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <a name="view1" href="[[rootPath]]view1">View One</a>
           <a name="view2" href="[[rootPath]]view2">View Two</a>
           <a name="view3" href="[[rootPath]]view3">View Three</a>
-          <a name="#" href="#" on-tap="logout">Salir</a>
+          <a name="logout" href="#" on-tap="logout">Salir</a>
         </iron-selector>
       </app-drawer>
 
@@ -175,9 +179,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         const resolvedPageUrl = this.resolveUrl('my-' + page + '.html');
         Polymer.importHref(
             resolvedPageUrl,
-            function() {
-              console.log('Se cargará todo.');
-            },
+            null,
             this._showPage404.bind(this),
             true);
       }
