@@ -71,6 +71,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       .iron-selected {
         background: #eee;
       }
+
+      .logout {
+        background: #F47272;
+      }
     </style>
 
     <app-location
@@ -91,10 +95,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-toolbar>Menu</app-toolbar>
         <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
           <a name="data" href="[[rootPath]]data">Datos personales</a>
-          <a name="view1" href="[[rootPath]]view1">View One</a>
+          <a name="accounts" href="[[rootPath]]accounts">Cuentas</a>
           <a name="view2" href="[[rootPath]]view2">View Two</a>
           <a name="view3" href="[[rootPath]]view3">View Three</a>
-          <a name="logout" href="#" on-tap="logout">Salir</a>
+          <a name="logout" href="#" on-tap="_logout" class="logout">Salir</a>
         </iron-selector>
       </app-drawer>
 
@@ -104,7 +108,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-header slot="header" condenses reveals effects="waterfall">
           <app-toolbar>
             <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
-            <div main-title>Hola, {{clientName}}</div>
+            <div main-title>Hola, [[clientName]]</div>
           </app-toolbar>
         </app-header>
 
@@ -113,8 +117,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             attr-for-selected="name"
             fallback-selection="view404"
             role="main">
-          <my-data name="data"></my-data>
-          <my-view1 name="view1"></my-view1>
+          <my-data name="data" client-id="{{clientId}}"" end-point="{{endPoint}}"></my-data>
+          <my-accounts name="accounts" client-id="{{clientId}}"" end-point="{{endPoint}}"></my-accounts>
           <my-view2 name="view2"></my-view2>
           <my-view3 name="view3"></my-view3>
           <my-view404 name="view404"></my-view404>
@@ -138,18 +142,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             reflectToAttribute: true,
             observer: '_pageChanged',
           },
-          clientName: {
+          clientId: String,
+          clientName: String,
+          endPoint: {
             type: String,
-            value: 'NA'
+            value: 'http://localhost:4000',
+            readOnly: true
           },
-          clientNumber: {
-            type: Number
-          },
-          routeData: Object,
-          subroute: Object,
           // This shouldn't be neccessary, but the Analyzer isn't picking up
           // Polymer.Element#rootPath
-          rootPath: String,
+          rootPath: String
         };
       }
 
@@ -163,11 +165,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // If no page was found in the route data, page will be an empty string.
         // Default to 'view1' in that case.
         this.page = page || 'data';
-        if (sessionStorage.clientName === undefined){
+        if (sessionStorage.clientId === undefined){
           location.href = 'login.html';
         }
+        this.clientId = sessionStorage.clientId;
         this.clientName = sessionStorage.clientName;
-        this.clientNumber = sessionStorage.clientNumber;
         // Close a non-persistent drawer when the page & route are changed.
         if (!this.$.drawer.persistent) {
           this.$.drawer.close();
@@ -188,9 +190,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.page = 'view404';
       }
 
-      logout(){
+      _logout(){
+        sessionStorage.removeItem('clientId');
         sessionStorage.removeItem('clientName');
-        sessionStorage.removeItem('clientNumber');
         location.href = 'login.html';
       }
     }

@@ -10,6 +10,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="shared-styles.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-date-picker/paper-date-picker.html">
 <dom-module id="my-data">
   <template>
     <style include="shared-styles">
@@ -18,26 +22,100 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         padding: 10px;
       }
+      paper-button.indigo {
+      background-color: var(--paper-indigo-500);
+      color: white;
+      --paper-button-raised-keyboard-focus: {
+        background-color: var(--paper-pink-a200) !important;
+        color: white !important;
+      }
+      paper-button {
+        padding:0;
+      }
+      paper-button::shadow .button-content {
+        padding:0;
+      }
+    }
     </style>
-
     <div class="card">
       <h1>Datos personales</h1>
       <p>A continuación se presentan tus datos personales.</p>
-      <iron-form id="myForm">
-        <form method="post" 
-              action="//httpbin.org/post">
-          <paper-input name="name" label="name"></paper-input>
-          <input type="text" name="none">
-          <paper-button on-tap="_submit">Submit</paper-button>
+      <iron-form id="form1">
+        <form method="get" action="#">
+          <paper-input name="clientName" label="Nombre" value="{{clientName}}" required></paper-input>
+          <paper-input name="cellphone" label="Teléfono" value="{{phoneNumber}}" required></paper-input>
+          <paper-input name="address" label="Dirección" value="{{address}}" required></paper-input>
+          <paper-input name="birthDate" label="Fecha de nacimiento" value="{{birthDate}}" required></paper-input>
+          <br>
+          <paper-button on-tap="_submitUpdate" class="indigo" >Actualizar</paper-button>
+        
         </form>
       </iron-form>
-      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
-    </div>
+      <div class="output"></div>
   </template>
 
   <script>
     class MyData extends Polymer.Element {
       static get is() { return 'my-data'; }
+      static get properties() {
+        return {
+          clientName: String,
+          phoneNumber: String,
+          address: String,
+          birthDate: String,
+          endPoint: String,
+          clientId: String,
+          pathClient: {
+            type: String,
+            value: '/clients/v0/clients/',
+            readOnly: true
+          },
+          // This shouldn't be neccessary, but the Analyzer isn't picking up
+          // Polymer.Element#rootPath
+          rootPath: String,
+        };
+      }
+      
+      ready() {
+        super.ready();
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathClient + this.clientId;
+        xhttp.open("GET", pathUrl, false);
+        xhttp.withCredentials = true;
+        xhttp.send();
+        if (xhttp.status == 200) {
+          var resp = JSON.parse(xhttp.responseText);
+          this.clientName = resp.name;
+          this.phoneNumber = resp.phoneNumber;
+          this.address = resp.address;
+          this.birthDate = resp.birthDate;
+          this.clientId = resp._id.$oid;
+        }
+      }
+      _submitUpdate(e) {
+        this.$.form1.submit();
+        var data = {
+          name: this.clientName,
+          phoneNumber: this.phoneNumber,
+          address: this.address,
+          birthDate: this.birthDate
+        };
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathClient + this.clientId;
+        xhttp.open("PUT", pathUrl, false);
+        xhttp.setRequestHeader('Content-Type', 'application/json'); 
+        xhttp.withCredentials = true;
+        xhttp.send(JSON.stringify(data));
+        var resp = JSON.parse(xhttp.responseText);
+        if (xhttp.status === 200){
+          alert('Los datos se han actualizado correctamente.');
+          e.preventDefault();
+          location.href = '/data';
+        }else{
+          alert(resp.message);
+        }
+        
+      }
     }
 
     window.customElements.define(MyData.is, MyData);

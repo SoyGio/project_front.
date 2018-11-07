@@ -9,9 +9,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
 <link rel="import" href="shared-styles.html">
 
-<dom-module id="my-view1">
+<dom-module id="my-accounts">
   <template>
     <style include="shared-styles">
       :host {
@@ -23,17 +24,52 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="card">
       <div class="circle">1</div>
-      <h1>View One</h1>
+      <h1>Cuentas</h1>
+      <h3>{{hasAccounts}}</h3>
+      <button on-click="_countArray(listAccounts, 0)">Contar</button>
+       <template is="dom-repeat" items="{{listAccounts}}">
+        <li>{{item.name}}
+        <li>{{item.data}}
+      </template>
       <p>Ut labores minimum atomorum pro. Laudem tibique ut has.</p>
       <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
     </div>
   </template>
 
   <script>
-    class MyView1 extends Polymer.Element {
-      static get is() { return 'my-view1'; }
+    class MyAccounts extends Polymer.Element {
+      static get is() { return 'my-accounts'; }
+      static get properties() {
+        return {
+          client: {
+            type: Object,
+            notify: true,
+            value: function() { 
+              return {}; 
+            }
+          },
+          listAccounts: {
+            type: Array,
+            value: function() { 
+              return [
+                {
+                  name: "Giovanni",
+                  data: "none"
+                },
+                {
+                  name: "Giovanni",
+                  data: "none"
+                }
+              ]; 
+            }
+          }
+        };
+      }
+      _hasAccounts(){
+        console.log(Object.keys(this.listAccounts).length);
+      }
     }
 
-    window.customElements.define(MyView1.is, MyView1);
+    window.customElements.define(MyAccounts.is, MyAccounts);
   </script>
 </dom-module>

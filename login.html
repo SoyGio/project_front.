@@ -62,8 +62,8 @@
 				xhttp.send();
 				if (xhttp.status === 200){
 					data = JSON.parse(xhttp.responseText);
+					sessionStorage.clientId = data[0]._id.$oid;
 					sessionStorage.clientName = data[0].name;
-					sessionStorage.clientNumber = data[0].client;
 				}
        			location.href = '/';
        		}else{
