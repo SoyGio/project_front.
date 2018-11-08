@@ -23,10 +23,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="my-icons.html">
 
 <link rel="lazy-import" href="my-data.html">
-<link rel="lazy-import" href="my-view1.html">
-<link rel="lazy-import" href="my-view2.html">
-<link rel="lazy-import" href="my-view3.html">
+<link rel="lazy-import" href="my-accounts.html">
 <link rel="lazy-import" href="my-view404.html">
+
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/vaadin-combo-box/vaadin-combo-box.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
 
 <dom-module id="my-app">
   <template>
@@ -94,10 +100,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
         <app-toolbar>Menu</app-toolbar>
         <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-          <a name="data" href="[[rootPath]]data">Datos personales</a>
-          <a name="accounts" href="[[rootPath]]accounts">Cuentas</a>
-          <a name="view2" href="[[rootPath]]view2">View Two</a>
-          <a name="view3" href="[[rootPath]]view3">View Three</a>
+          <a name="my-data" href="[[rootPath]]my-data">Datos personales</a>
+          <a name="my-accounts" href="[[rootPath]]my-accounts">Cuentas</a>
+          <a name="my-pockets" href="[[rootPath]]my-pockets">Apartados</a>
+          <a name="my-movements" href="[[rootPath]]my-movements">Movements</a>
           <a name="logout" href="#" on-tap="_logout" class="logout">Salir</a>
         </iron-selector>
       </app-drawer>
@@ -108,7 +114,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-header slot="header" condenses reveals effects="waterfall">
           <app-toolbar>
             <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
-            <div main-title>Hola, [[clientName]]</div>
+            <div main-title>Hola, {{clientName}}</div>
           </app-toolbar>
         </app-header>
 
@@ -117,10 +123,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             attr-for-selected="name"
             fallback-selection="view404"
             role="main">
-          <my-data name="data" client-id="{{clientId}}"" end-point="{{endPoint}}"></my-data>
-          <my-accounts name="accounts" client-id="{{clientId}}"" end-point="{{endPoint}}"></my-accounts>
-          <my-view2 name="view2"></my-view2>
-          <my-view3 name="view3"></my-view3>
+          <my-data name="my-data" client-id="{{clientId}}" end-point="{{endPoint}}" client-name="{{clientName}}"></my-data>
+          <my-accounts name="my-accounts" client-id="{{clientId}}" end-point="{{endPoint}}"></my-accounts>
+          <add-account name="add-account" client-id="{{clientId}}" end-point="{{endPoint}}"></add-account>
+          <mod-account name="mod-account" client-id="{{clientId}}" end-point="{{endPoint}}"></mod-account>
+          <my-pockets name="my-pockets" client-id="{{clientId}}" end-point="{{endPoint}}"></my-pockets>
+          <add-pocket name="add-pocket" client-id="{{clientId}}" end-point="{{endPoint}}"></add-pocket>
+          <my-movements name="my-movements" client-id="{{clientId}}" end-point="{{endPoint}}"></my-movements>
           <my-view404 name="view404"></my-view404>
         </iron-pages>
       </app-header-layout>
@@ -128,10 +137,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </template>
 
   <script>
-    // Gesture events like tap and track generated from touch will not be
-    // preventable, allowing for better scrolling performance.
-    Polymer.setPassiveTouchGestures(true);
-
     class MyApp extends Polymer.Element {
       static get is() { return 'my-app'; }
 
@@ -149,6 +154,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             value: 'http://localhost:4000',
             readOnly: true
           },
+          numberPocket: {
+            type: String,
+            value: ''
+          },
           // This shouldn't be neccessary, but the Analyzer isn't picking up
           // Polymer.Element#rootPath
           rootPath: String
@@ -164,7 +173,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _routePageChanged(page) {
         // If no page was found in the route data, page will be an empty string.
         // Default to 'view1' in that case.
-        this.page = page || 'data';
+        this.page = page || 'my-data';
         if (sessionStorage.clientId === undefined){
           location.href = 'login.html';
         }
@@ -178,7 +187,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _pageChanged(page) {
         // Load page import on demand. Show 404 page if fails
-        const resolvedPageUrl = this.resolveUrl('my-' + page + '.html');
+        const resolvedPageUrl = this.resolveUrl(page + '.html');
         Polymer.importHref(
             resolvedPageUrl,
             null,

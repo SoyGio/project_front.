@@ -1,0 +1,195 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+<dom-module id="my-pockets">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+     
+    }
+    </style>
+    <style>
+      .table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+      }
+      table, td, tr, th {
+        border-bottom: 1px solid black;
+        text-align: center;
+      }
+      .div-over {
+        overflow-x: auto;
+      }
+      .select{
+        cursor: pointer;
+      }
+      paper-dropdown-menu, paper-listbox {
+        width: 250px;
+      }
+      paper-dropdown-menu {
+        height: 200px;
+        margin: auto;
+        display: block;
+      }
+    </style>
+
+    <div class="card">
+      <h1>Apartados</h1>
+      <p>Selecciona una cuenta para administrar sus apartados.</p>
+      <label>Cuenta: </label><vaadin-combo-box placeholder="Selecciona cuenta" items="[[listAccounts]]" item-value-path="number" item-label-path="number" id='comboAccounts' on-change='_searchPockets'></vaadin-combo-box>
+      <br><br>
+      <template is="dom-if" if="{{!hasPockets}}" restamp="true">
+        <p><b>No tienes apartados para mostrar, puedes seleccionar <i>Crear apartado</i> para dar de alta uno.</b></p>
+        <br>
+        <paper-button on-tap="_addPocket" raised class="indigo" >Crear apartado</paper-button>
+      </template>
+      <template is="dom-if" if="{{hasPockets}}" restamp="true">
+        <div class='div-over'>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Pocket</th>
+                <th scope="col">Fecha de creación</th>
+                <th scope="col">Saldo</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template is="dom-repeat" items="{{listPockets}}">
+                <tr>
+                  <th scope="row">[[displayIndex(index)]]</th>
+                  <td>[[item.number]]</td>
+                  <td>[[item.creationDate]]</td>
+                  <td>$[[item.balance]]</td>
+                  <td>
+                    <!--
+                    <img src="../images/icon-edit.png" width="32px" title="Modificar" class="select" on-click='_updatePocket'  data-id$='[[item._id.$oid]]'>&nbsp;&nbsp;&nbsp;
+                  -->
+                    <img src="../images/icon-delete.png" width="32px" title="Eliminar" class="select" on-click='_deletePocket' 
+                    data-id$='[[item._id.$oid]]' data-number$='[[item.number]]'>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </template>
+      <div class="output"></div>
+    </div>
+  </template>
+  <script>
+    class MyPockets extends Polymer.Element {
+      static get is() { return 'my-pockets'; }
+      static get properties() {
+        return {
+          pathPockets: {
+            type: String,
+            value: '/pockets/v0/pockets/',
+            readOnly: true
+          },
+          pathAccounts: {
+            type: String,
+            value: '/accounts/v0/accounts/',
+            readOnly: true
+          },
+          listAccounts: {
+            type: Array,
+            value: function(){
+              return [];
+            }
+          },
+          listPockets: {
+            type: Array,
+            value: function(){
+              return [];
+            }
+          },
+          hasPockets: Boolean
+        };
+      }
+      ready() {
+        super.ready();
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathAccounts + this.clientId;
+        xhttp.open("GET", pathUrl, false);
+        xhttp.withCredentials = true;
+        xhttp.send();
+        if (xhttp.status == 200) {
+          var resp = JSON.parse(xhttp.responseText);
+          if (resp.length === 0){
+            if (confirm("No tienes cuentas disponibles para administrar apartados. ¿Quieres dar de alta una cuenta?")){
+              location.href = '/add-account';
+            }else{
+              location.href = '/my-accounts';
+            }
+          }
+          this.listAccounts = resp;
+        }
+      }
+      _addPocket() {
+          location.href = '/add-pocket';
+      }
+      _deletePocket(ev){
+        var id = ev.target.getAttribute('data-id');
+        var num = ev.target.getAttribute('data-number');
+        if (confirm("Seguro que quieres eliminar el apartado " + num + "?")){
+          var xhttp = new XMLHttpRequest();
+          var pathUrl = this.endPoint + this.pathPockets + num;
+          xhttp.open("DELETE", pathUrl, false);
+          xhttp.withCredentials = true;
+          xhttp.send();
+          if (xhttp.status == 200) {
+            var resp = JSON.parse(xhttp.responseText);
+            if (resp.number === undefined){
+              alert("Ocurrió un problema al intentar eliminar la cuenta.");
+            }else{
+              alert("La cuenta ha sido eliminada correctamente.");
+              location.href = '/my-pockets';
+            }  
+          }
+        }
+      }
+
+      displayIndex(index){
+        return index + 1;
+      }
+
+      _searchPockets(ev){
+        this.hasPockets = false;
+        var number = ev.target.value;
+        if (number !== ''){
+          sessionStorage.number = number;
+          var xhttp = new XMLHttpRequest();
+          var pathUrl = this.endPoint + this.pathPockets + number;
+          xhttp.open("GET", pathUrl, false);
+          xhttp.withCredentials = true;
+          xhttp.send();
+          if (xhttp.status == 200) {
+            this.listPockets = JSON.parse(xhttp.responseText);
+          }else{
+            his.listPockets = [];
+            this.hasPockets = false;
+          }
+          this.hasPockets = this.listPockets.length > 0;
+        }
+      }
+    }
+
+    window.customElements.define(MyPockets.is, MyPockets);
+  </script>
+</dom-module>

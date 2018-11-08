@@ -4,8 +4,11 @@
   "fragments": [
     "src/my-data.html",
     "src/my-accounts.html",
-    "src/my-view2.html",
-    "src/my-view3.html",
+    "src/add-account.html",
+    "src/mod-account.html",
+    "src/my-pockets.html",
+    "src/add-pocket.html",
+    "src/my-movements.html",
     "src/my-view404.html"
   ],
   "sources": [

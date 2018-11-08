@@ -1,0 +1,146 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
+<dom-module id="my-movements">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+     
+    }
+    </style>
+    <style>
+      .table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+      }
+      table, td, tr, th {
+        border-bottom: 1px solid black;
+        text-align: center;
+      }
+      .div-over {
+        overflow-x: auto;
+      }
+      .select{
+        cursor: pointer;
+      }
+    </style>
+
+    <div class="card">
+      <h1>Movimientos</h1>
+      <p>A continuación se presentan los movimientos de tus cuentas.</p>
+      <template is="dom-if" if="{{hasMovements}}">
+        <div class='div-over'>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Cuenta</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Monto</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template is="dom-repeat" items="[[listMovements]]">
+                <tr>
+                  <th scope="row">[[displayIndex(index)]]</th>
+                  <td>[[_getNumber(item.number)]]</td>
+                  <td>[[item.detail.description]]</td>
+                  <td>[[item.detail.operationDate]]</td>
+                  <td>[[_getType(item.detail.type)]]</td>
+                  <td>$[[item.detail.amount]]</td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </template>
+      <template is="dom-if" if="{{!hasMovements}}">
+        <p><b>No tienes movimientos para listar.</b></p>
+      </template>
+      <br>
+      <div class="output"></div>
+    </div>
+  </template>
+
+  <script>
+    class MyMovements extends Polymer.Element {
+      static get is() { return 'my-movements'; }
+      static get properties() {
+        return {
+          pathMovement: {
+            type: String,
+            value: '/movements/v0/movements/',
+            readOnly: true
+          },
+          listMovements: {
+            type: Array,
+            value: function(){
+              return [];
+            }
+          },
+          hasMovements: Boolean
+        };
+      }
+      ready() {
+        super.ready();
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathMovement + this.clientId;
+        xhttp.open("GET", pathUrl, false);
+        xhttp.withCredentials = true;
+        xhttp.send();
+        if (xhttp.status == 200) {
+          this.listMovements = JSON.parse(xhttp.responseText);
+        }
+        this.hasMovements = false;
+        if (this.listMovements.length > 0){
+          this.hasMovements = true;
+        }
+      }
+
+      displayIndex(index){
+        return index + 1;
+      }
+      _addAccount() {
+          location.href = '/add-account';
+      }
+
+      _getType(type){
+        if (type === 'I'){
+          return 'Informativo';
+        }else if (type === 'C'){
+          return 'Cargo';
+        }else if (type === 'D'){
+          return 'Abono';
+        }
+      }
+
+      _getNumber(number){
+        if (number === 0){
+          return '- - - - -';
+        }else {
+          return number;
+        }
+      }
+    }
+
+    window.customElements.define(MyMovements.is, MyMovements);
+  </script>
+</dom-module>

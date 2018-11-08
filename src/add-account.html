@@ -1,0 +1,84 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="add-account">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    }
+    </style>
+
+    <div class="card">
+      <h1>Alta de cuenta</h1>
+      <p>Ingresa los datos con los que será aperturada la cuenta. Por defecto tendrá un saldo de $1,000.00</p>
+       <iron-form id="formadd">
+        <form method="get" action="#">
+          <paper-input name="number" label="Número de cuenta" value="{{number}}" required id="numberAccount"></paper-input>
+          <paper-input name="cardNumber" label="Número de tarjeta" value="{{cardNumber}}" required></paper-input>
+          <paper-input name="balance" label="Saldo" readOnly value="$1,000.00"></paper-input>
+          <br>
+          <paper-button on-tap="_submitAdd" raised class="indigo" >Guardar</paper-button>
+          <paper-button on-tap="_submitCancel" >Cancelar</paper-button>
+        </form>
+      </iron-form>
+      <div class="output"></div>
+    </div>
+  </template>
+  <script>
+    class AddAccount extends Polymer.Element {
+      static get is() { return 'add-account'; }
+      static get properties() {
+        return {
+          number: Number,
+          cardNumber: Number,
+          clientId: String,
+          pathAccount: {
+            type: String,
+            value: '/accounts/v0/accounts/',
+            readOnly: true
+          }
+        };
+      }
+
+      _submitCancel(){
+        location.href = '/my-accounts';
+      }
+
+      _submitAdd(){
+        this.$.formadd.submit();
+        var data = {
+          number: Number(this.number),
+          cardNumber: Number(this.cardNumber)
+        };
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathAccount + this.clientId;
+        xhttp.open("POST", pathUrl, false);
+        xhttp.setRequestHeader('Content-Type', 'application/json'); 
+        xhttp.withCredentials = true;
+        xhttp.send(JSON.stringify(data));
+        var resp = JSON.parse(xhttp.responseText);
+        if (xhttp.status === 200){
+          alert('Los datos se registraron correctamente.');
+          location.href = '/my-accounts';
+        }else{
+          alert(resp.message);
+        }
+      }
+    }
+    window.customElements.define(AddAccount.is, AddAccount);
+  </script>
+</dom-module>

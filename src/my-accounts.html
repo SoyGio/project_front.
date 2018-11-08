@@ -9,9 +9,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
 <link rel="import" href="shared-styles.html">
-
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
 <dom-module id="my-accounts">
   <template>
     <style include="shared-styles">
@@ -20,19 +20,69 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         padding: 10px;
       }
+     
+    }
+    </style>
+    <style>
+       .table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+      }
+      table, td, tr, th {
+        border-bottom: 1px solid black;
+        text-align: center;
+      }
+      .div-over {
+        overflow-x: auto;
+      }
+      .select{
+        cursor: pointer;
+      }
     </style>
 
     <div class="card">
-      <div class="circle">1</div>
       <h1>Cuentas</h1>
-      <h3>{{hasAccounts}}</h3>
-      <button on-click="_countArray(listAccounts, 0)">Contar</button>
-       <template is="dom-repeat" items="{{listAccounts}}">
-        <li>{{item.name}}
-        <li>{{item.data}}
+      <p>A continuación se presentan tus cuentas registradas</p>
+      <template is="dom-if" if="{{hasAccounts}}">
+        <div class='div-over'>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Cuenta</th>
+                <th scope="col">Tarjeta</th>
+                <th scope="col">Fecha de creación</th>
+                <th scope="col">Saldo</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template is="dom-repeat" items="{{listAccounts}}">
+                <tr>
+                  <th scope="row">[[displayIndex(index)]]</th>
+                  <td>[[item.number]]</td>
+                  <td>[[item.cardNumber]]</td>
+                  <td>[[item.creationDate]]</td>
+                  <td>$[[item.balance]]</td>
+                  <td>
+                    <img src="../images/icon-edit.png" width="32px" title="Modificar" class="select" on-click='_updateAccount'
+                    data-id$='[[item._id.$oid]]'>&nbsp;&nbsp;&nbsp;
+                    <img src="../images/icon-delete.png" width="32px" title="Eliminar" class="select" on-click='_deleteAccount' 
+                    data-id$='[[item._id.$oid]]' data-num$='[[item.number]]'>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
       </template>
-      <p>Ut labores minimum atomorum pro. Laudem tibique ut has.</p>
-      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
+      <template is="dom-if" if="{{!hasAccounts}}">
+        <p><b>No tienes cuentas para mostrar, puedes seleccionar <i>Crear cuenta</i> para dar de alta uno.</b></p>
+      </template>
+      <br>
+      <paper-button on-tap="_addAccount" raised class="indigo" >Crear cuenta</paper-button>
+      <div class="output"></div>
     </div>
   </template>
 
@@ -41,32 +91,68 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get is() { return 'my-accounts'; }
       static get properties() {
         return {
-          client: {
-            type: Object,
-            notify: true,
-            value: function() { 
-              return {}; 
-            }
+          pathAccount: {
+            type: String,
+            value: '/accounts/v0/accounts/',
+            readOnly: true
           },
           listAccounts: {
             type: Array,
-            value: function() { 
-              return [
-                {
-                  name: "Giovanni",
-                  data: "none"
-                },
-                {
-                  name: "Giovanni",
-                  data: "none"
-                }
-              ]; 
+            value: function(){
+              return [];
             }
-          }
+          },
+          hasAccounts: Boolean
         };
       }
-      _hasAccounts(){
-        console.log(Object.keys(this.listAccounts).length);
+      ready() {
+        super.ready();
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathAccount + this.clientId;
+        xhttp.open("GET", pathUrl, false);
+        xhttp.withCredentials = true;
+        xhttp.send();
+        if (xhttp.status == 200) {
+          this.listAccounts = JSON.parse(xhttp.responseText);
+        }
+        this.hasAccounts = false;
+        if (this.listAccounts.length > 0){
+          this.hasAccounts = true;
+        }
+      }
+
+      displayIndex(index){
+        return index + 1;
+      }
+      _addAccount() {
+          location.href = '/add-account';
+      }
+
+      _deleteAccount(ev){
+        var id = ev.target.getAttribute('data-id');
+        var num = ev.target.getAttribute('data-num');
+        if (confirm("Seguro que quieres eliminar la cuenta " + num + "?")){
+          var xhttp = new XMLHttpRequest();
+          var pathUrl = this.endPoint + this.pathAccount + id;
+          xhttp.open("DELETE", pathUrl, false);
+          xhttp.withCredentials = true;
+          xhttp.send();
+          if (xhttp.status == 200) {
+            var resp = JSON.parse(xhttp.responseText);
+            if (resp.client === undefined){
+              alert("Ocurrió un problema al intentar eliminar la cuenta.");
+            }else{
+              alert("La cuenta ha sido eliminada correctamente.");
+              location.href = '/my-accounts';
+            }  
+          }
+        }
+      }
+
+      _updateAccount(ev){
+        var id = ev.target.getAttribute('data-id');
+        sessionStorage.accountId = id;
+        location.href = '/mod-account';
       }
     }
 

@@ -10,10 +10,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="shared-styles.html">
-<link rel="import" href="../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../bower_components/iron-form/iron-form.html">
-<link rel="import" href="../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../bower_components/paper-date-picker/paper-date-picker.html">
 <dom-module id="my-data">
   <template>
     <style include="shared-styles">
@@ -22,19 +18,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         padding: 10px;
       }
-      paper-button.indigo {
-      background-color: var(--paper-indigo-500);
-      color: white;
-      --paper-button-raised-keyboard-focus: {
-        background-color: var(--paper-pink-a200) !important;
-        color: white !important;
-      }
-      paper-button {
-        padding:0;
-      }
-      paper-button::shadow .button-content {
-        padding:0;
-      }
     }
     </style>
     <div class="card">
@@ -42,7 +25,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <p>A continuación se presentan tus datos personales.</p>
       <iron-form id="form1">
         <form method="get" action="#">
-          <paper-input name="clientName" label="Nombre" value="{{clientName}}" required></paper-input>
+          <paper-input name="clientName" label="Nombre" value="{{clientName}}" required id="clientName"></paper-input>
           <paper-input name="cellphone" label="Teléfono" value="{{phoneNumber}}" required></paper-input>
           <paper-input name="address" label="Dirección" value="{{address}}" required></paper-input>
           <paper-input name="birthDate" label="Fecha de nacimiento" value="{{birthDate}}" required></paper-input>
@@ -59,7 +42,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get is() { return 'my-data'; }
       static get properties() {
         return {
-          clientName: String,
+          clientName: {
+            type: String,
+            notify: true
+          },
           phoneNumber: String,
           address: String,
           birthDate: String,
@@ -69,10 +55,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             type: String,
             value: '/clients/v0/clients/',
             readOnly: true
-          },
-          // This shouldn't be neccessary, but the Analyzer isn't picking up
-          // Polymer.Element#rootPath
-          rootPath: String,
+          }
         };
       }
       
@@ -109,12 +92,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var resp = JSON.parse(xhttp.responseText);
         if (xhttp.status === 200){
           alert('Los datos se han actualizado correctamente.');
+          this.$.clientName.focus();
           e.preventDefault();
-          location.href = '/data';
+          location.href = '/my-accounts';
         }else{
           alert(resp.message);
         }
-        
       }
     }
 
