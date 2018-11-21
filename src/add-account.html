@@ -24,12 +24,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="card">
       <h1>Alta de cuenta</h1>
-      <p>Ingresa los datos con los que será aperturada la cuenta. Por defecto tendrá un saldo de $1,000.00</p>
+      <p>A continuación se presenta la información con la que será creada tu cuenta. Por defecto tendrá un saldo de $1,000.00. Presiona <strong>Guardar</strong> para confirmar los datos y sea creado la cuenta.</p>
        <iron-form id="formadd">
         <form method="get" action="#">
-          <paper-input name="number" label="Número de cuenta" value="{{number}}" required id="numberAccount"></paper-input>
-          <paper-input name="cardNumber" label="Número de tarjeta" value="{{cardNumber}}" required></paper-input>
-          <paper-input name="balance" label="Saldo" readOnly value="$1,000.00"></paper-input>
+          <paper-input name="number" label="Número de cuenta" readOnly value="{{number}}" required id="numberAccount"></paper-input>
+          <paper-input name="cardNumber" label="Número de tarjeta" readOnly value="{{cardNumber}}" required></paper-input>
+          <paper-input name="balance" label="Saldo" readOnly value="1000" type="Number">
+            <div slot="prefix">$</div>
+          </paper-input>
           <br>
           <paper-button on-tap="_submitAdd" raised class="indigo" >Guardar</paper-button>
           <paper-button on-tap="_submitCancel" >Cancelar</paper-button>
@@ -54,29 +56,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         };
       }
 
+      ready(){
+        super.ready();
+        var account = Math.floor(Math.random() * 9999999999);
+        var media = Math.floor(Math.random() * 99);
+        var tdd = "415231" + media + account;
+        this.number = account;
+        this.cardNumber = tdd;
+      }
+
       _submitCancel(){
         location.href = '/my-accounts';
       }
 
       _submitAdd(){
-        this.$.formadd.submit();
-        var data = {
-          number: Number(this.number),
-          cardNumber: Number(this.cardNumber)
-        };
-        var xhttp = new XMLHttpRequest();
-        var pathUrl = this.endPoint + this.pathAccount + this.clientId;
-        xhttp.open("POST", pathUrl, false);
-        xhttp.setRequestHeader('Content-Type', 'application/json'); 
-        xhttp.withCredentials = true;
-        xhttp.send(JSON.stringify(data));
-        var resp = JSON.parse(xhttp.responseText);
-        if (xhttp.status === 200){
-          alert('Los datos se registraron correctamente.');
-          location.href = '/my-accounts';
-        }else{
-          alert(resp.message);
-        }
+        if (this.$.formadd.validate()){
+          var data = {
+            number: Number(this.number),
+            cardNumber: this.cardNumber
+          };
+          console.log(JSON.stringify(data));
+          var xhttp = new XMLHttpRequest();
+          var pathUrl = this.endPoint + this.pathAccount + this.clientId;
+          xhttp.open("POST", pathUrl, false);
+          xhttp.setRequestHeader('Content-Type', 'application/json'); 
+          xhttp.withCredentials = true;
+          xhttp.send(JSON.stringify(data));
+          var resp = JSON.parse(xhttp.responseText);
+          if (xhttp.status === 200){
+            alert('Los datos se registraron correctamente.');
+            location.href = '/my-accounts';
+          }else{
+            alert(resp.message);
+          }
+        } 
       }
     }
     window.customElements.define(AddAccount.is, AddAccount);

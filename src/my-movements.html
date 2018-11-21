@@ -17,7 +17,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style include="shared-styles">
       :host {
         display: block;
-
         padding: 10px;
       }
      
@@ -65,7 +64,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                   <td>[[item.detail.description]]</td>
                   <td>[[item.detail.operationDate]]</td>
                   <td>[[_getType(item.detail.type)]]</td>
-                  <td>$[[item.detail.amount]]</td>
+                  <td>[[_getAmount(item.detail.type, item.detail.amount)]]</td>
                 </tr>
               </template>
             </tbody>
@@ -129,6 +128,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           return 'Cargo';
         }else if (type === 'D'){
           return 'Abono';
+        }else if (type === 'A'){
+          return 'Acceso';
+        }
+      }
+
+      _getAmount(type, amount){
+        if (type === 'C' || type === 'D'){
+          return '$' + amount;
+        }else{
+          return '- - -';
         }
       }
 

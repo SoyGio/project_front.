@@ -1,0 +1,175 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+<dom-module id="my-login">
+  <template>
+    <style>
+      :host {
+        display: block;
+        font-family: Tahoma;
+        padding: 0px;
+      }
+      .container {
+        max-width: 450px;
+        max-height: 280px;
+        padding: 15px 35px 45px;
+        margin: 0 auto;
+        background-color: #fff;
+        border: 1px solid rgba(0,0,0,0.1);  
+        margin-top: 100px;
+      }
+      .success, .error {
+        margin: 10px 0px;
+        padding:12px;  
+      }
+      .success {
+          color: #4F8A10;
+          background-color: #DFF2BF;
+          display: none;
+      }
+      .error {
+          color: #D8000C;
+          background-color: #FFD2D2;
+          display: none;
+      }
+
+      .register{
+        float: right;
+      }
+
+      .loader {
+        border: 5px solid #f3f3f3;
+        -webkit-animation: spin 1s linear infinite;
+        animation: spin 1s linear infinite;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        margin: 0 auto;
+        display: none;
+      }
+
+      /* Safari */
+      @-webkit-keyframes spin {
+        0% { -webkit-transform: rotate(0deg); }
+        100% { -webkit-transform: rotate(360deg); }
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      paper-button.indigo {
+        background-color: var(--paper-indigo-500);
+        color: white;
+        --paper-button-raised-keyboard-focus: {
+          background-color: var(--paper-indigo-500) !important;
+          color: white !important;
+        };
+      }
+
+    </style>
+    <div class="container">
+      <h2>Inicio de sesión</h2>
+       <iron-form id="formlogin">
+        <form method="GET" action="#">
+          <paper-input class="username" label="Usuario o Email" value='{{username}}' autofocus required></paper-input>
+          <paper-input type="password" name="password" label="Contraseña" value='{{password}}' maxlength="10" required ></paper-input>
+          <br>
+          <paper-button on-tap="_submitLogin" raised class="indigo">Iniciar</paper-button>
+          <a href='register.html' class='register'>Registrarme</a>
+        </form>
+      </iron-form>
+      <div class="loader"></div>
+      <div class="success"></div>
+      <div class="error"></div>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `my-login`
+     */
+    if (sessionStorage.clientName !== undefined && sessionStorage.clientName !== ''){
+      location.href = '/';
+    }
+    class MyLogin extends Polymer.Element {
+      static get is() { return 'my-login'; }
+      static get properties() {
+        return {
+          username: String,
+          password: String,
+          endpoint: {
+            type: String,
+            value: 'http://localhost:4000',
+            readOnly: true
+          },
+          pathUsers: {
+            type: String,
+            value: '/users/v0/users',
+            readOnly: true
+          }
+        };
+      }
+      ready(){
+        super.ready();
+        if (sessionStorage.clientId !== undefined && sessionStorage.clientId !== ''){
+          location.href = '/';
+        }
+
+      }
+      _submitLogin(){
+        var shadow = this.shadowRoot;
+        var success = shadow.querySelector('.success');
+        var error = shadow.querySelector('.error'); 
+        success.style.display = "none";
+        error.style.display = "none";
+        var form1 = this.$.formlogin;
+        if (form1.validate()){
+          var loader = shadow.querySelector('.loader');
+          loader.style.display = "block";
+          var xhttp = new XMLHttpRequest();
+          var params =  "?username=" + this.username + "&password=" + this.password;
+          xhttp.open("GET", this.endpoint + this.pathUsers + params, true);
+          xhttp.timeout = 5000;
+          xhttp.send(null);
+          xhttp.ontimeout = function (e) {
+            error.style.display = "block";
+            error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
+            loader.style.display = "none";
+          };
+          xhttp.onreadystatechange = function() {//Call a function when the state changes.
+            if (xhttp.status === 0){
+              error.style.display = "block";
+              error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
+            }
+            loader.style.display = "none";
+          };
+          xhttp.onload = function() {
+            if (xhttp.readyState === 4) {
+              var data = JSON.parse(xhttp.responseText);
+              if (xhttp.status === 200){
+                success.style.display = "block";
+                success.innerHTML = data.message;
+                sessionStorage.clientId = data.clientId;
+                location.href = '/';
+              }else{
+                error.style.display = "block";
+                error.innerHTML = data.message;
+                form1.reset();
+                shadow.querySelector('.username').focus();
+              }
+            }
+            loader.style.display = "none";
+          };
+
+        }
+      }
+    }
+
+    window.customElements.define(MyLogin.is, MyLogin);
+  </script>
+</dom-module>

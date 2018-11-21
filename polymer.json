@@ -9,6 +9,7 @@
     "src/my-pockets.html",
     "src/add-pocket.html",
     "src/my-movements.html",
+    "src/my-login.html",
     "src/my-view404.html"
   ],
   "sources": [

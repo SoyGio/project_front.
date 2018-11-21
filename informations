@@ -1,0 +1,19 @@
+info
+
+https://www.webcomponents.org/element/@polymer/paper-input/demo/demo/index.html
+https://www.polymer-project.org/2.0/docs/devguide/registering-elements
+
+https://www.webcomponents.org/element/@polymer/iron-form
+
+https://stackoverflow.com/questions/30785890/how-to-declare-and-bind-to-properties-with-type-object-in-polymer-1-0
+
+Requerimientos mìnimos
+
+Polymer 1.8
+Node 8
+
+
+npm start
+polymer serve --open
+
+https://www.webcomponents.org/element/@polymer/paper-input/demo/demo/index.html

@@ -22,10 +22,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="my-icons.html">
 
-<link rel="lazy-import" href="my-data.html">
-<link rel="lazy-import" href="my-accounts.html">
-<link rel="lazy-import" href="my-view404.html">
-
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/iron-form/iron-form.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
@@ -103,7 +99,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <a name="my-data" href="[[rootPath]]my-data">Datos personales</a>
           <a name="my-accounts" href="[[rootPath]]my-accounts">Cuentas</a>
           <a name="my-pockets" href="[[rootPath]]my-pockets">Apartados</a>
-          <a name="my-movements" href="[[rootPath]]my-movements">Movements</a>
+          <a name="my-movements" href="[[rootPath]]my-movements">Actividad</a>
           <a name="logout" href="#" on-tap="_logout" class="logout">Salir</a>
         </iron-selector>
       </app-drawer>
@@ -125,7 +121,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             role="main">
           <my-data name="my-data" client-id="{{clientId}}" end-point="{{endPoint}}" client-name="{{clientName}}"></my-data>
           <my-accounts name="my-accounts" client-id="{{clientId}}" end-point="{{endPoint}}"></my-accounts>
-          <add-account name="add-account" client-id="{{clientId}}" end-point="{{endPoint}}"></add-account>
+          <add-account name="add-account" client-id="{{clientId}}" client-name="{{clientName}}" end-point="{{endPoint}}"></add-account>
           <mod-account name="mod-account" client-id="{{clientId}}" end-point="{{endPoint}}"></mod-account>
           <my-pockets name="my-pockets" client-id="{{clientId}}" end-point="{{endPoint}}"></my-pockets>
           <add-pocket name="add-pocket" client-id="{{clientId}}" end-point="{{endPoint}}"></add-pocket>
@@ -174,11 +170,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // If no page was found in the route data, page will be an empty string.
         // Default to 'view1' in that case.
         this.page = page || 'my-data';
-        if (sessionStorage.clientId === undefined){
+        if (sessionStorage.clientId === undefined || sessionStorage.clientId === ''){
           location.href = 'login.html';
         }
         this.clientId = sessionStorage.clientId;
-        this.clientName = sessionStorage.clientName;
         // Close a non-persistent drawer when the page & route are changed.
         if (!this.$.drawer.persistent) {
           this.$.drawer.close();
@@ -201,7 +196,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _logout(){
         sessionStorage.removeItem('clientId');
-        sessionStorage.removeItem('clientName');
         location.href = 'login.html';
       }
     }
