@@ -29,7 +29,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/vaadin-combo-box/vaadin-combo-box.html">
 <link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
 <link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
-
+<link href="../FreezeUI/freeze-ui.min.css" type="text/css" rel="stylesheet"/>
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="shared-styles2.html">
 <dom-module id="my-app">
   <template>
     <style>
@@ -120,7 +122,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fallback-selection="view404"
             role="main">
           <my-data name="my-data" client-id="{{clientId}}" end-point="{{endPoint}}" client-name="{{clientName}}"></my-data>
-          <my-accounts name="my-accounts" client-id="{{clientId}}" end-point="{{endPoint}}"></my-accounts>
+          <my-accounts name="my-accounts" client-id="{{clientId}}" lient-name="{{clientName}}" end-point="{{endPoint}}"></my-accounts>
           <add-account name="add-account" client-id="{{clientId}}" client-name="{{clientName}}" end-point="{{endPoint}}"></add-account>
           <mod-account name="mod-account" client-id="{{clientId}}" end-point="{{endPoint}}"></mod-account>
           <my-pockets name="my-pockets" client-id="{{clientId}}" end-point="{{endPoint}}"></my-pockets>
@@ -203,3 +205,4 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     window.customElements.define(MyApp.is, MyApp);
   </script>
 </dom-module>
+<script src="../FreezeUI/freeze-ui.min.js"></script>

@@ -91,6 +91,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get is() { return 'my-accounts'; }
       static get properties() {
         return {
+          clientName: {
+            type: String,
+            notify: true
+          },
           pathAccount: {
             type: String,
             value: '/accounts/v0/accounts/',
@@ -125,7 +129,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return index + 1;
       }
       _addAccount() {
+        setTimeout(function(){
+          FreezeUI({ text: 'Espere...' }); 
           location.href = '/add-account';
+        } , 100);      
       }
 
       _deleteAccount(ev){
@@ -152,7 +159,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _updateAccount(ev){
         var id = ev.target.getAttribute('data-id');
         sessionStorage.accountId = id;
-        location.href = '/mod-account';
+        setTimeout(function(){
+          FreezeUI({ text: 'Espere...' }); 
+          location.href = '/mod-account';
+        } , 100);   
       }
     }
 

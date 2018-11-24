@@ -9,32 +9,36 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="shared-styles.html">
 <dom-module id="my-data">
   <template>
     <style include="shared-styles">
       :host {
         display: block;
-
         padding: 10px;
       }
     }
     </style>
+    <customStyle>
+    <style include="shared-styles2">
+    </style>
+    </customStyle>
     <div class="card">
       <h1>Datos personales</h1>
       <p>A continuación se presentan tus datos personales.</p>
-      <iron-form id="form1">
+      <iron-form id="formdata">
         <form method="get" action="#">
           <paper-input name="clientName" label="Nombre" value="{{clientName}}" required id="clientName"></paper-input>
           <paper-input name="cellphone" label="Teléfono" value="{{phoneNumber}}" required></paper-input>
           <paper-input name="address" label="Dirección" value="{{address}}" required></paper-input>
-          <paper-input name="birthDate" label="Fecha de nacimiento" value="{{birthDate}}" required></paper-input>
+          <paper-input name="birthDate" label="Fecha de nacimiento" value="{{birthDate}}" required type="date"></paper-input>
           <br>
-          <paper-button on-tap="_submitUpdate" class="indigo" >Actualizar</paper-button>
-        
+          <paper-button on-tap="_submitUpdate" class="indigo" raised>Actualizar</paper-button>
         </form>
       </iron-form>
-      <div class="output"></div>
+      <div class="loader"></div>
+      <div class="success"></div>
+      <div class="error"></div>
+    </div>
   </template>
 
   <script>
@@ -75,29 +79,66 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.clientId = resp._id.$oid;
         }
       }
-      _submitUpdate(e) {
-        this.$.form1.submit();
-        var data = {
-          name: this.clientName,
-          phoneNumber: this.phoneNumber,
-          address: this.address,
-          birthDate: this.birthDate
-        };
+      _submitUpdate() {
+        var shadow = this.shadowRoot;
+        var success = shadow.querySelector('.success');
+        var error = shadow.querySelector('.error'); 
+        success.style.display = "none";
+        error.style.display = "none";
+        var form1 = this.$.formdata;
+        
+        if (form1.validate()){
+          var loader = shadow.querySelector('.loader'); 
+          loader.style.display = "block";
+          var obj = {
+            name: this.clientName,
+            phoneNumber: this.phoneNumber,
+            address: this.address,
+            birthDate: this.birthDate
+          };
+          this._updateData(obj, function(resp){
+            if (resp.code == 'TIMEOUT'){
+              error.style.display = "block";
+              error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
+            }else{
+              if (resp.status !== 200){
+                error.style.display = "block";
+                error.innerHTML = resp.message;   
+              }else{
+                success.style.display = "block";
+                success.innerHTML = 'Tus datos han sido actualizados correctamente.';
+                setTimeout(function(){
+                  FreezeUI({ text: 'Espere...' }); 
+                  setTimeout(function(){location.href="/"} , 100); 
+                } , 1500); 
+              }
+            } 
+            loader.style.display = "none";
+          }.bind(this));
+        }  
+      }
+
+      _updateData(obj, callback){
         var xhttp = new XMLHttpRequest();
         var pathUrl = this.endPoint + this.pathClient + this.clientId;
-        xhttp.open("PUT", pathUrl, false);
+        xhttp.open("PUT", pathUrl, true);
         xhttp.setRequestHeader('Content-Type', 'application/json'); 
         xhttp.withCredentials = true;
-        xhttp.send(JSON.stringify(data));
-        var resp = JSON.parse(xhttp.responseText);
-        if (xhttp.status === 200){
-          alert('Los datos se han actualizado correctamente.');
-          this.$.clientName.focus();
-          e.preventDefault();
-          location.href = '/my-accounts';
-        }else{
-          alert(resp.message);
+        xhttp.timeout = 5000;
+        xhttp.send(JSON.stringify(obj));
+        xhttp.onload = function() {
+          if (xhttp.readyState === 4) {
+            var data = JSON.parse(xhttp.responseText);
+            data.status = xhttp.status;
+            return callback(data);        
+          } 
         }
+        xhttp.ontimeout = function () {
+          var data = {
+            code: 'TIMEOUT'
+          };
+          callback(data);
+        };
       }
     }
 

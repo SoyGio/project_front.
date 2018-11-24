@@ -5,7 +5,7 @@
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
-
+<link href="../FreezeUI/freeze-ui.min.css" type="text/css" rel="stylesheet"/>
 <dom-module id="sign-in">
   <template>
     <style>
@@ -88,7 +88,6 @@
     <div class="container">
       <h2>Registrate</h2>
         <ul><li><span>Ingresa tus datos personales:</span></li></ul>
-
         <iron-form id="formregister">
          <form method="GET" action="#">
             <paper-input label="Nombre" value='{{name}}' required auto-validate></paper-input>
@@ -184,7 +183,7 @@
           var loader = shadow.querySelector('.loader');
           loader.style.display = "block";
           this.validUser(function(data){
-            if (data.code = 'TIMEOUT'){
+            if (data.code == 'TIMEOUT'){
               error.style.display = "block";
               error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
             }else{
@@ -201,18 +200,21 @@
                   }else{
                     success.style.display = "block";
                     success.innerHTML = data2.message;
-                    //form1.reset();
+                    sessionStorage.clientId = '';
+                    setTimeout(function(){
+                      setTimeout(function(){location.href="/login.html"} , 100); 
+                      FreezeUI({ text: 'Espere...' }); 
+                    } , 1500); 
                   }
                 });
               }
             }   
+            loader.style.display = "none";
           }.bind(this));
-          loader.style.display = "none";
+          
         }             
       }
       validUser(callback){ 
-        var shadow = this.shadowRoot;
-        var error = shadow.querySelector('.error'); 
         var params = "?username=" + this.username;
         var xhttp = new XMLHttpRequest();
         xhttp.open("GET", this.endpoint + this.pathValidate + params, true);
@@ -250,3 +252,4 @@
     window.customElements.define(SignIn.is, SignIn);
   </script>
 </dom-module>
+<script src="../FreezeUI/freeze-ui.min.js"></script>

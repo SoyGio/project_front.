@@ -9,8 +9,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="shared-styles.html">
-
 <dom-module id="mod-account">
   <template>
     <style include="shared-styles">
@@ -21,21 +19,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     }
     </style>
-
+    <customStyle>
+      <style include="shared-styles2">
+      </style>
+    </customStyle>
     <div class="card">
       <h1>Actualización de la cuenta [[number]]</h1>
       <p>Ingresa los datos con los que será aperturada la cuenta. Por defecto tendrá un saldo de $1,000.00</p>
-       <iron-form id="form2">
+       <iron-form id="formupdateac">
         <form method="get" action="#">
           <paper-input name="number" label="Número de cuenta" value="{{number}}" required id="numberAccount"></paper-input>
           <paper-input name="cardNumber" label="Número de tarjeta" value="{{cardNumber}}" required></paper-input>
-          <paper-input name="balance" label="Saldo" readOnly value="[[balance]]"></paper-input>
+          <paper-input name="balance" label="Saldo" readOnly value="[[balance]]">
+             <div slot="prefix">$</div>
+          </paper-input>
           <br>
           <paper-button on-tap="_submitUpdate" raised class="indigo" >Guardar</paper-button>
           <paper-button on-tap="_submitCancel" >Cancelar</paper-button>
         </form>
       </iron-form>
-      <div class="output"></div>
+      <div class="loader"></div>
+      <div class="success"></div>
+      <div class="error"></div>
     </div>
   </template>
   <script>
@@ -80,24 +85,62 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       _submitUpdate(){
-        this.$.form2.submit();
-        var data = {
-          number: Number(this.number),
-          cardNumber: Number(this.cardNumber)
-        };
+         var shadow = this.shadowRoot;
+        var success = shadow.querySelector('.success');
+        var error = shadow.querySelector('.error'); 
+        success.style.display = "none";
+        error.style.display = "none";
+        var form1 = this.$.formupdateac;
+        if (form1.validate()){
+          var loader = shadow.querySelector('.loader'); 
+          loader.style.display = "block";
+          var obj = {
+            number: Number(this.number),
+            cardNumber: this.cardNumber
+          };
+          this._updateAccount(obj, function(resp){
+            if (resp.code == 'TIMEOUT'){
+              error.style.display = "block";
+              error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
+            }else{
+              if (resp.status !== 200){
+                error.style.display = "block";
+                error.innerHTML = resp.message;   
+              }else{
+                success.style.display = "block";
+                success.innerHTML = 'La cuenta ha sido actualizada correctamente.';
+                setTimeout(function(){
+                  FreezeUI({ text: 'Espere...' }); 
+                  setTimeout(function(){location.href="/my-accounts"} , 100); 
+                } , 1500); 
+              }
+            } 
+            loader.style.display = "none";
+          }.bind(this));
+        }
+      }
+
+      _updateAccount(obj, callback){
         var xhttp = new XMLHttpRequest();
         var pathUrl = this.endPoint + this.pathAccount + this.accountId;
-        xhttp.open("PUT", pathUrl, false);
+        xhttp.open("PUT", pathUrl, true);
         xhttp.setRequestHeader('Content-Type', 'application/json'); 
         xhttp.withCredentials = true;
-        xhttp.send(JSON.stringify(data));
-        var resp = JSON.parse(xhttp.responseText);
-        if (xhttp.status === 200){
-          alert('Los datos se registraron correctamente.');
-          location.href = '/my-accounts';
-        }else{
-          alert(resp.message);
+        xhttp.timeout = 5000;
+        xhttp.send(JSON.stringify(obj));
+        xhttp.onload = function() {
+          if (xhttp.readyState === 4) {
+            var data = JSON.parse(xhttp.responseText);
+            data.status = xhttp.status;
+            return callback(data);        
+          } 
         }
+        xhttp.ontimeout = function () {
+          var data = {
+            code: 'TIMEOUT'
+          };
+          callback(data);
+        };
       }
     }
     window.customElements.define(ModAccount.is, ModAccount);
