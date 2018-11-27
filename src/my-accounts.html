@@ -23,8 +23,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
      
     }
     </style>
-    <style>
-       .table {
+    <customStyle>
+      <style include="shared-styles2">
+      .table {
         border-collapse: collapse;
         border-spacing: 0;
         width: 100%;
@@ -39,8 +40,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       .select{
         cursor: pointer;
       }
-    </style>
-
+      </style>
+    </customStyle>
     <div class="card">
       <h1>Cuentas</h1>
       <p>A continuación se presentan tus cuentas registradas</p>
@@ -68,7 +69,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                   <td>
                     <img src="../images/icon-edit.png" width="32px" title="Modificar" class="select" on-click='_updateAccount'
                     data-id$='[[item._id.$oid]]'>&nbsp;&nbsp;&nbsp;
-                    <img src="../images/icon-delete.png" width="32px" title="Eliminar" class="select" on-click='_deleteAccount' 
+                    <img src="../images/icon-delete.png" width="32px" title="Eliminar" class="select" on-click='_executeDelete' 
                     data-id$='[[item._id.$oid]]' data-num$='[[item.number]]'>
                   </td>
                 </tr>
@@ -82,7 +83,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </template>
       <br>
       <paper-button on-tap="_addAccount" raised class="indigo" >Crear cuenta</paper-button>
-      <div class="output"></div>
+      <div class="loader"></div>
+      <div class="success"></div>
+      <div class="error"></div>
     </div>
   </template>
 
@@ -135,27 +138,65 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         } , 100);      
       }
 
-      _deleteAccount(ev){
+      _executeDelete(ev){
+        var shadow = this.shadowRoot;
+        var success = shadow.querySelector('.success');
+        var error = shadow.querySelector('.error'); 
+        success.style.display = "none";
+        error.style.display = "none";
         var id = ev.target.getAttribute('data-id');
         var num = ev.target.getAttribute('data-num');
         if (confirm("Seguro que quieres eliminar la cuenta " + num + "?")){
-          var xhttp = new XMLHttpRequest();
-          var pathUrl = this.endPoint + this.pathAccount + id;
-          xhttp.open("DELETE", pathUrl, false);
-          xhttp.withCredentials = true;
-          xhttp.send();
-          if (xhttp.status == 200) {
-            var resp = JSON.parse(xhttp.responseText);
-            if (resp.client === undefined){
-              alert("Ocurrió un problema al intentar eliminar la cuenta.");
+          var loader = shadow.querySelector('.loader'); 
+          loader.style.display = "block";
+          this._deleteAccount(id, function(resp){
+            if (resp.code == 'TIMEOUT'){
+              error.style.display = "block";
+              error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
             }else{
-              alert("La cuenta ha sido eliminada correctamente.");
-              location.href = '/my-accounts';
-            }  
-          }
+              if (resp.status !== 200){
+                error.style.display = "block";
+                error.innerHTML = resp.message;   
+              }else{
+                success.style.display = "block";
+                success.innerHTML = 'La cuenta ha sido eliminada correctamente.';
+                setTimeout(function(){
+                  FreezeUI({ text: 'Espere...' }); 
+                  setTimeout(function(){location.href="/my-accounts"} , 100); 
+                } , 1500); 
+              }
+            } 
+            loader.style.display = "none";
+          }.bind(this));
         }
       }
 
+      _deleteAccount(){
+
+      }
+
+      _deleteAccount(id, callback){
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathAccount + id;
+        xhttp.open("DELETE", pathUrl, true);
+        xhttp.setRequestHeader('Content-Type', 'application/json'); 
+        xhttp.withCredentials = true;
+        xhttp.timeout = 5000;
+        xhttp.send();
+        xhttp.onload = function() {
+          if (xhttp.readyState === 4) {
+            var data = JSON.parse(xhttp.responseText);
+            data.status = xhttp.status;
+            return callback(data);        
+          } 
+        }
+        xhttp.ontimeout = function () {
+          var data = {
+            code: 'TIMEOUT'
+          };
+          callback(data);
+        };
+      }
       _updateAccount(ev){
         var id = ev.target.getAttribute('data-id');
         sessionStorage.accountId = id;
