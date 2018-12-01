@@ -25,7 +25,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </customStyle>
     <div class="card">
       <h1>Actualización de la cuenta [[number]]</h1>
-      <p>Ingresa los datos con los que será aperturada la cuenta. Por defecto tendrá un saldo de $1,000.00</p>
+      <p>Ingresa los datos con los que será aperturada la cuenta. <b>El saldo no puede ser actualizado</b></p>
        <iron-form id="formupdateac">
         <form method="get" action="#">
           <paper-input name="number" label="Número de cuenta" value="{{number}}" required id="numberAccount"></paper-input>
@@ -85,7 +85,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       _submitUpdate(){
-         var shadow = this.shadowRoot;
+        var shadow = this.shadowRoot;
         var success = shadow.querySelector('.success');
         var error = shadow.querySelector('.error'); 
         success.style.display = "none";
@@ -110,7 +110,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 success.style.display = "block";
                 success.innerHTML = 'La cuenta ha sido actualizada correctamente.';
                 setTimeout(function(){
-                  FreezeUI({ text: 'Espere...' }); 
+                  FreezeUI({ text: 'Espera...' }); 
                   setTimeout(function(){location.href="/my-accounts"} , 100); 
                 } , 1500); 
               }

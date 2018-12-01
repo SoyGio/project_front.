@@ -15,13 +15,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style include="shared-styles">
       :host {
         display: block;
-
         padding: 10px;
       }
      
     }
     </style>
-    <style>
+    <customStyle>
+    <style include="shared-styles2">
       .table {
         border-collapse: collapse;
         border-spacing: 0;
@@ -46,6 +46,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         display: block;
       }
     </style>
+    </customStyle>
 
     <div class="card">
       <h1>Apartados</h1>
@@ -89,7 +90,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </table>
         </div>
       </template>
-      <div class="output"></div>
+      <div class="loader"></div>
+      <div class="success"></div>
+      <div class="error"></div>
     </div>
   </template>
   <script>
@@ -133,16 +136,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var resp = JSON.parse(xhttp.responseText);
           if (resp.length === 0){
             if (confirm("No tienes cuentas disponibles para administrar apartados. ¿Quieres dar de alta una cuenta?")){
-              location.href = '/add-account';
+              FreezeUI({ text: 'Espera...' }); 
+              setTimeout(function(){
+                location.href = '/add-account';
+              }, 500); 
             }else{
-              location.href = '/my-accounts';
+              FreezeUI({ text: 'Espera...' }); 
+              setTimeout(function(){
+                location.href = '/my-account';
+              }, 500); 
             }
           }
           this.listAccounts = resp;
         }
       }
       _addPocket() {
+        setTimeout(function(){
+          FreezeUI({ text: 'Espera...' }); 
           location.href = '/add-pocket';
+        }, 200); 
       }
       _deletePocket(ev){
         var id = ev.target.getAttribute('data-id');
@@ -172,6 +184,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _searchPockets(ev){
         this.hasPockets = false;
         var number = ev.target.value;
+        FreezeUI({ text: 'Espera...' }); 
         if (number !== ''){
           sessionStorage.number = number;
           var xhttp = new XMLHttpRequest();

@@ -17,7 +17,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style include="shared-styles">
       :host {
         display: block;
-
         padding: 10px;
       }
      
@@ -132,10 +131,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return index + 1;
       }
       _addAccount() {
+        FreezeUI({ text: 'Espera...' }); 
         setTimeout(function(){
-          FreezeUI({ text: 'Espere...' }); 
           location.href = '/add-account';
-        } , 100);      
+        }, 500);      
       }
 
       _executeDelete(ev){
@@ -161,7 +160,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 success.style.display = "block";
                 success.innerHTML = 'La cuenta ha sido eliminada correctamente.';
                 setTimeout(function(){
-                  FreezeUI({ text: 'Espere...' }); 
+                  FreezeUI({ text: 'Espera...' }); 
                   setTimeout(function(){location.href="/my-accounts"} , 100); 
                 } , 1500); 
               }
@@ -169,10 +168,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             loader.style.display = "none";
           }.bind(this));
         }
-      }
-
-      _deleteAccount(){
-
       }
 
       _deleteAccount(id, callback){
@@ -200,10 +195,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _updateAccount(ev){
         var id = ev.target.getAttribute('data-id');
         sessionStorage.accountId = id;
+        FreezeUI({ text: 'Espera...' }); 
         setTimeout(function(){
-          FreezeUI({ text: 'Espere...' }); 
           location.href = '/mod-account';
-        } , 100);   
+        } , 500);   
       }
     }
 
