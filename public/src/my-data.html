@@ -1,0 +1,150 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<dom-module id="my-data">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+    }
+    </style>
+    <customStyle>
+    <style include="shared-styles2">
+    </style>
+    </customStyle>
+    <div class="card">
+      <h1>Datos personales</h1>
+      <p>A continuación se presentan tus datos personales.</p>
+      <iron-form id="formdata">
+        <form method="get" action="#">
+          <paper-input name="clientName" label="Nombre" value="{{clientName}}" required id="clientName"></paper-input>
+          <paper-input name="cellphone" label="Teléfono" value="{{phoneNumber}}" required></paper-input>
+          <paper-input name="address" label="Dirección" value="{{address}}" required></paper-input>
+          <paper-input name="birthDate" label="Fecha de nacimiento" value="{{birthDate}}" required type="date"></paper-input>
+          <br>
+          <paper-button on-tap="_submitUpdate" class="indigo" raised>Actualizar</paper-button>
+        </form>
+      </iron-form>
+      <div class="loader"></div>
+      <div class="success"></div>
+      <div class="error"></div>
+    </div>
+  </template>
+
+  <script>
+    class MyData extends Polymer.Element {
+      static get is() { return 'my-data'; }
+      static get properties() {
+        return {
+          clientName: {
+            type: String,
+            notify: true
+          },
+          phoneNumber: String,
+          address: String,
+          birthDate: String,
+          endPoint: String,
+          clientId: String,
+          pathClient: {
+            type: String,
+            value: '/clients/v0/clients/',
+            readOnly: true
+          }
+        };
+      }
+      
+      ready() {
+        super.ready();
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathClient + this.clientId;
+        xhttp.open("GET", pathUrl, false);
+        xhttp.withCredentials = true;
+        xhttp.send();
+        if (xhttp.status == 200) {
+          var resp = JSON.parse(xhttp.responseText);
+          this.clientName = resp.name;
+          this.phoneNumber = resp.phoneNumber;
+          this.address = resp.address;
+          this.birthDate = resp.birthDate;
+          this.clientId = resp._id.$oid;
+          sessionStorage.clientName = this.clientName;
+          sessionStorage.removeItem('accountId');
+          sessionStorage.removeItem('number');
+        }
+      }
+      _submitUpdate() {
+        var shadow = this.shadowRoot;
+        var success = shadow.querySelector('.success');
+        var error = shadow.querySelector('.error'); 
+        success.style.display = "none";
+        error.style.display = "none";
+        var form1 = this.$.formdata;
+        
+        if (form1.validate()){
+          var loader = shadow.querySelector('.loader'); 
+          loader.style.display = "block";
+          var obj = {
+            name: this.clientName,
+            phoneNumber: this.phoneNumber,
+            address: this.address,
+            birthDate: this.birthDate
+          };
+          this._updateData(obj, function(resp){
+            if (resp.code == 'TIMEOUT'){
+              error.style.display = "block";
+              error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
+            }else{
+              if (resp.status !== 200){
+                error.style.display = "block";
+                error.innerHTML = resp.message;   
+              }else{
+                success.style.display = "block";
+                success.innerHTML = 'Tus datos han sido actualizados correctamente.';
+                setTimeout(function(){
+                  FreezeUI({ text: 'Espera...' }); 
+                  setTimeout(function(){location.href="/"} , 100); 
+                } , 1000); 
+              }
+            } 
+            loader.style.display = "none";
+          }.bind(this));
+        }  
+      }
+
+      _updateData(obj, callback){
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathClient + this.clientId;
+        xhttp.open("PUT", pathUrl, true);
+        xhttp.setRequestHeader('Content-Type', 'application/json'); 
+        xhttp.withCredentials = true;
+        xhttp.timeout = 5000;
+        xhttp.send(JSON.stringify(obj));
+        xhttp.onload = function() {
+          if (xhttp.readyState === 4) {
+            var data = JSON.parse(xhttp.responseText);
+            data.status = xhttp.status;
+            return callback(data);        
+          } 
+        }
+        xhttp.ontimeout = function () {
+          var data = {
+            code: 'TIMEOUT'
+          };
+          callback(data);
+        };
+      }
+    }
+
+    window.customElements.define(MyData.is, MyData);
+  </script>
+</dom-module>

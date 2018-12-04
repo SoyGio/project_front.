@@ -1,0 +1,144 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<dom-module id="add-account">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    }
+    </style>
+    <customStyle>
+      <style include="shared-styles2">
+      </style>
+    </customStyle>
+    <div class="card">
+      <h1>Alta de cuenta</h1>
+      <p>A continuación se presenta la información con la que será creada tu cuenta. <br>Inicialmente, la cuenta tendrá un saldo de $1,000.00. Presiona <strong>Guardar</strong> para confirmar los datos y sea creado la cuenta.</p>
+       <iron-form id="formadd">
+        <form method="get" action="#">
+          <paper-input name="number" label="Número de cuenta" readOnly value="{{number}}" required id="numberAccount"></paper-input>
+          <paper-input name="cardNumber" label="Número de tarjeta" readOnly value="{{cardNumber}}" required></paper-input>
+          <paper-input name="balance" label="Saldo" readOnly value="1000" type="Number">
+            <div slot="prefix">$</div>
+          </paper-input>
+          <br>
+          <paper-button on-tap="_submitAdd" raised class="indigo" >Guardar</paper-button>
+          <paper-button on-tap="_submitCancel" >Cancelar</paper-button>
+        </form>
+      </iron-form>
+      <div class="loader"></div>
+      <div class="success"></div>
+      <div class="error"></div>
+    </div>
+  </template>
+  <script>
+    class AddAccount extends Polymer.Element {
+      static get is() { return 'add-account'; }
+      static get properties() {
+        return {
+          number: Number,
+          cardNumber: Number,
+          clientId: String,
+          clientName: {
+            type: String,
+            notify: true
+          },
+          pathAccount: {
+            type: String,
+            value: '/accounts/v0/accounts/',
+            readOnly: true
+          }
+        };
+      }
+
+      ready(){
+        super.ready();
+        var account = Math.floor(Math.random() * 9999999999);
+        var media = Math.floor(Math.random() * 99);
+        var tdd = "415231" + media + account;
+        this.number = account;
+        this.cardNumber = tdd;
+        this.clientName = sessionStorage.clientName;
+      }
+
+      _submitCancel(){
+        FreezeUI({ text: 'Espera...' }); 
+        setTimeout(function(){
+          location.href = '/my-accounts';
+        } , 300); 
+      }
+
+      _submitAdd(){
+        var shadow = this.shadowRoot;
+        var success = shadow.querySelector('.success');
+        var error = shadow.querySelector('.error'); 
+        success.style.display = "none";
+        error.style.display = "none";
+        var form1 = this.$.formadd;
+        if (form1.validate()){
+          var loader = shadow.querySelector('.loader'); 
+          loader.style.display = "block";
+          var obj = {
+            number: Number(this.number),
+            cardNumber: this.cardNumber
+          };
+          this._addAccount(obj, function(resp){
+            if (resp.code == 'TIMEOUT'){
+              error.style.display = "block";
+              error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
+            }else{
+              if (resp.status !== 200){
+                error.style.display = "block";
+                error.innerHTML = resp.message;   
+              }else{
+                success.style.display = "block";
+                success.innerHTML = 'La cuenta ha sido creada correctamente.';
+                setTimeout(function(){
+                  FreezeUI({ text: 'Espera...' }); 
+                  setTimeout(function(){location.href="/my-accounts"} , 100); 
+                } , 1000); 
+              }
+            } 
+            loader.style.display = "none";
+          }.bind(this));
+        } 
+      }
+
+      _addAccount(obj, callback){
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathAccount + this.clientId;
+        xhttp.open("POST", pathUrl, true);
+        xhttp.setRequestHeader('Content-Type', 'application/json'); 
+        xhttp.withCredentials = true;
+        xhttp.timeout = 5000;
+        xhttp.send(JSON.stringify(obj));
+        xhttp.onload = function() {
+          if (xhttp.readyState === 4) {
+            var data = JSON.parse(xhttp.responseText);
+            data.status = xhttp.status;
+            return callback(data);        
+          } 
+        }
+        xhttp.ontimeout = function () {
+          var data = {
+            code: 'TIMEOUT'
+          };
+          callback(data);
+        };
+      }
+    }
+    window.customElements.define(AddAccount.is, AddAccount);
+  </script>
+</dom-module>
