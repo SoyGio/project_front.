@@ -113,6 +113,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       ready() {
         super.ready();
+        this.clientName = sessionStorage.clientName;
         var xhttp = new XMLHttpRequest();
         var pathUrl = this.endPoint + this.pathAccount + this.clientId;
         xhttp.open("GET", pathUrl, false);
@@ -130,6 +131,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       displayIndex(index){
         return index + 1;
       }
+      
       _addAccount() {
         FreezeUI({ text: 'Espera...' }); 
         setTimeout(function(){
@@ -162,10 +164,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 setTimeout(function(){
                   FreezeUI({ text: 'Espera...' }); 
                   setTimeout(function(){location.href="/my-accounts"} , 100); 
-                } , 1500); 
+                } , 1000); 
               }
+              loader.style.display = "none";
             } 
-            loader.style.display = "none";
           }.bind(this));
         }
       }
@@ -198,7 +200,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         FreezeUI({ text: 'Espera...' }); 
         setTimeout(function(){
           location.href = '/mod-account';
-        } , 500);   
+        } , 500);
       }
     }
 

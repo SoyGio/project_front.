@@ -47,7 +47,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
     </customStyle>
-
     <div class="card">
       <h1>Apartados</h1>
       <p>Selecciona una cuenta para administrar sus apartados.</p>
@@ -78,10 +77,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                   <td>[[item.creationDate]]</td>
                   <td>$[[item.balance]]</td>
                   <td>
-                    <!--
                     <img src="../images/icon-edit.png" width="32px" title="Modificar" class="select" on-click='_updatePocket'  data-id$='[[item._id.$oid]]'>&nbsp;&nbsp;&nbsp;
-                  -->
-                    <img src="../images/icon-delete.png" width="32px" title="Eliminar" class="select" on-click='_deletePocket' 
+                    <img src="../images/icon-delete.png" width="32px" title="Eliminar" class="select" on-click='_executeDelete' 
                     data-id$='[[item._id.$oid]]' data-number$='[[item.number]]'>
                   </td>
                 </tr>
@@ -90,6 +87,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </table>
         </div>
       </template>
+      <br>
       <div class="loader"></div>
       <div class="success"></div>
       <div class="error"></div>
@@ -122,11 +120,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               return [];
             }
           },
-          hasPockets: Boolean
+          hasPockets: Boolean,
+          clientName: {
+            type: String,
+            notify: true
+          }
         };
       }
       ready() {
         super.ready();
+        this.clientName = sessionStorage.clientName;
         var xhttp = new XMLHttpRequest();
         var pathUrl = this.endPoint + this.pathAccounts + this.clientId;
         xhttp.open("GET", pathUrl, false);
@@ -143,7 +146,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             }else{
               FreezeUI({ text: 'Espera...' }); 
               setTimeout(function(){
-                location.href = '/my-account';
+                location.href = '/my-accounts';
               }, 500); 
             }
           }
@@ -151,40 +154,83 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       }
       _addPocket() {
+        FreezeUI({ text: 'Espera...' }); 
         setTimeout(function(){
-          FreezeUI({ text: 'Espera...' }); 
           location.href = '/add-pocket';
-        }, 200); 
+        }, 500); 
       }
-      _deletePocket(ev){
+
+      _executeDelete(ev){
+        var shadow = this.shadowRoot;
+        var success = shadow.querySelector('.success');
+        var error = shadow.querySelector('.error'); 
         var id = ev.target.getAttribute('data-id');
         var num = ev.target.getAttribute('data-number');
         if (confirm("Seguro que quieres eliminar el apartado " + num + "?")){
-          var xhttp = new XMLHttpRequest();
-          var pathUrl = this.endPoint + this.pathPockets + num;
-          xhttp.open("DELETE", pathUrl, false);
-          xhttp.withCredentials = true;
-          xhttp.send();
-          if (xhttp.status == 200) {
-            var resp = JSON.parse(xhttp.responseText);
-            if (resp.number === undefined){
-              alert("Ocurrió un problema al intentar eliminar la cuenta.");
+          var loader = shadow.querySelector('.loader'); 
+          loader.style.display = "block";
+          this._deletePocket(num , function(resp){
+             if (resp.code == 'TIMEOUT'){
+              error.style.display = "block";
+              error.innerHTML = "Ocurrió un problema al intentar eliminar el apartado.";
             }else{
-              alert("La cuenta ha sido eliminada correctamente.");
-              location.href = '/my-pockets';
-            }  
-          }
+              if (resp.status !== 200){
+                error.style.display = "block";
+                error.innerHTML = resp.message;   
+              }else{
+                success.style.display = "block";
+                success.innerHTML = 'El apartado ha sido eliminado correctamente.';
+                setTimeout(function(){
+                  FreezeUI({ text: 'Espera...' }); 
+                  setTimeout(function(){location.href="/my-pockets"} , 100); 
+                } , 1000); 
+              }
+              loader.style.display = "none";
+            } 
+          }.bind(this));
         }
+      }
+
+      _deletePocket(num, callback){
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathPockets + num;
+        xhttp.open("DELETE", pathUrl, true);
+        xhttp.setRequestHeader('Content-Type', 'application/json'); 
+        xhttp.withCredentials = true;
+        xhttp.timeout = 5000;
+        xhttp.send();
+        xhttp.onload = function() {
+          if (xhttp.readyState === 4) {
+            var data = JSON.parse(xhttp.responseText);
+            data.status = xhttp.status;
+            return callback(data);        
+          } 
+        }
+        xhttp.ontimeout = function () {
+          var data = {
+            code: 'TIMEOUT'
+          };
+          callback(data);
+        };
       }
 
       displayIndex(index){
         return index + 1;
       }
 
+      _updatePocket() {
+        FreezeUI({ text: 'Espera...' }); 
+        setTimeout(function(){
+          location.href = '/mod-pocket';
+        }, 500);      
+      }
+
       _searchPockets(ev){
         this.hasPockets = false;
         var number = ev.target.value;
-        FreezeUI({ text: 'Espera...' }); 
+        var shadow = this.shadowRoot;
+        var loader = shadow.querySelector('.loader'); 
+        loader.style.display = "block";
         if (number !== ''){
           sessionStorage.number = number;
           var xhttp = new XMLHttpRequest();
@@ -195,9 +241,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if (xhttp.status == 200) {
             this.listPockets = JSON.parse(xhttp.responseText);
           }else{
-            his.listPockets = [];
+            this.listPockets = [];
             this.hasPockets = false;
           }
+          loader.style.display = "none";
           this.hasPockets = this.listPockets.length > 0;
         }
       }

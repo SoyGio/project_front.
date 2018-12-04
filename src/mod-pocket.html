@@ -1,0 +1,271 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<dom-module id="mod-pocket">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+    }
+    </style>
+    <customStyle>
+      <style include="shared-styles2">
+      </style>
+    </customStyle>
+    <div class="card">
+      <h1>Actualización de la cuenta [[number]]</h1>
+      <p>Ingresa los datos con los que será aperturada la cuenta. <b>El saldo no puede ser actualizado</b></p>
+       <iron-form id="formupdateac">
+        <form method="get" action="#">
+          <paper-input name="number" label="Número de apartadp" value="{{number}}" required></paper-input>
+          <paper-input name="balance" label="Saldo" readOnly value="[[balance]]">
+             <div slot="prefix">$</div>
+          </paper-input>
+          <label>¿Que deseas hacer?</label>&nbsp;&nbsp;<vaadin-combo-box placeholder="Selecciona" items="[[listOptions]]" item-value-path="number" item-label-path="number" on-change='_validOption' required></vaadin-combo-box>
+          <paper-input name="amount" label="Importe" value="{{amount}}" id="amountPocket" required>
+            <div slot="prefix">$</div>
+          </paper-input>
+          <br><br>
+          <paper-button on-tap="_executeOperation" raised class="indigo" >Confirmar</paper-button>
+          <paper-button on-tap="_submitCancel" >Cancelar</paper-button>
+        </form>
+      </iron-form>
+      <div class="loader"></div>
+      <div class="success"></div>
+      <div class="error"></div>
+    </div>
+  </template>
+  <script>
+    class ModPocket extends Polymer.Element {
+      static get is() { return 'mod-pocket'; }
+      static get properties() {
+        return {
+          number: Number,
+          clientId: String,
+          clientName: {
+            type: String,
+            notify: true
+          },
+          accountId: {
+            type: String,
+            value: ''
+          },
+          balance: String,
+          pathPockets: {
+            type: String,
+            value: '/pockets/v0/pockets/',
+            readOnly: true
+          },
+          listOptions: {
+            type: Array,
+            value: function(){
+              return ['Agregar dinero', 'Disponer dinero', 'Eliminar apartado']
+            }
+          },
+          pocketId: {
+            type: String,
+            value: ''
+          },
+          optionId: {
+            type: Number,
+            value: -1
+          },
+          amount: {
+            type: String,
+            value: 0
+          }
+        };
+      }
+
+      ready(){
+        super.ready();
+        this.accountId = sessionStorage.number;
+        this.clientName = sessionStorage.clientName;
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathPockets + this.accountId + "?type=DETAIL";
+        xhttp.open("GET", pathUrl, false);
+        xhttp.setRequestHeader('Content-Type', 'application/json'); 
+        xhttp.withCredentials = true;
+        xhttp.send(); 
+        var resp = JSON.parse(xhttp.responseText);
+        if (xhttp.status === 200){
+          this.number = resp[0].number;
+          this.balance = resp[0].balance;
+          this.pocketId = resp[0]._id.$oid;
+        }else{
+          alert(resp.message);
+        }
+      }
+
+      _submitCancel(){
+        FreezeUI({ text: 'Espera...' }); 
+        setTimeout(function(){
+          location.href = '/my-pockets';
+        } , 300); 
+      }
+
+      _validOption(ev){
+        this.optionId = ev.target._focusedIndex;
+        this.$.amountPocket.readOnly = false;
+        this.amount = 0;
+        if (this.optionId === 0 || this.optionId === 1){
+          this.amount = '';
+          this.$.amountPocket.focus();
+        }else if (this.optionId === 2){
+          this.amount = this.balance;
+          this.$.amountPocket.readOnly = true;
+        }
+      }
+
+      _executeOperation(){
+        var shadow = this.shadowRoot;
+        var success = shadow.querySelector('.success');
+        var error = shadow.querySelector('.error');
+        if (isNaN(this.amount)){
+          error.style.display = "block";
+          error.innerHTML = "El importe es incorrecto, verifica.";
+          this.amount = '';
+          this.$.amountPocket.focus();
+        }else{
+          if (this.optionId === -1){
+            error.style.display = "block";
+            error.innerHTML = "Debes seleccionar una opción a realizar.";
+          }else if (this.optionId === 0 || this.optionId === 1){
+             this._executeUpdate();
+          }else if (this.optionId === 2){
+            this._executeDelete();
+          }
+        }
+        
+      }
+
+      _executeDelete(){
+        var shadow = this.shadowRoot;
+        var success = shadow.querySelector('.success');
+        var error = shadow.querySelector('.error'); 
+        if (confirm("Seguro que quieres eliminar el apartado " + this.number + "?")){
+          var loader = shadow.querySelector('.loader'); 
+          loader.style.display = "block";
+          this._deletePocket(this.number , function(resp){
+             if (resp.code == 'TIMEOUT'){
+              error.style.display = "block";
+              error.innerHTML = "Ocurrió un problema al intentar eliminar el apartado.";
+            }else{
+              if (resp.status !== 200){
+                error.style.display = "block";
+                error.innerHTML = resp.message;   
+              }else{
+                success.style.display = "block";
+                success.innerHTML = 'El apartado ha sido eliminado correctamente.';
+                setTimeout(function(){
+                  FreezeUI({ text: 'Espera...' }); 
+                  setTimeout(function(){location.href="/my-pockets"} , 100); 
+                } , 1000); 
+              }
+              loader.style.display = "none";
+            } 
+          }.bind(this));
+        }
+      }
+
+      _deletePocket(num, callback){
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathPockets + num;
+        xhttp.open("DELETE", pathUrl, true);
+        xhttp.setRequestHeader('Content-Type', 'application/json'); 
+        xhttp.withCredentials = true;
+        xhttp.timeout = 5000;
+        xhttp.send();
+        xhttp.onload = function() {
+          if (xhttp.readyState === 4) {
+            var data = JSON.parse(xhttp.responseText);
+            data.status = xhttp.status;
+            return callback(data);        
+          } 
+        }
+        xhttp.ontimeout = function () {
+          var data = {
+            code: 'TIMEOUT'
+          };
+          callback(data);
+        };
+      }
+
+      _executeUpdate(){
+        var shadow = this.shadowRoot;
+        var success = shadow.querySelector('.success');
+        var error = shadow.querySelector('.error'); 
+        success.style.display = "none";
+        error.style.display = "none";
+        var form1 = this.$.formupdateac;
+        if (form1.validate()){
+          var loader = shadow.querySelector('.loader'); 
+          loader.style.display = "block";
+          var obj = {
+            number: Number(this.number),
+            amount: Number(this.amount)
+          };
+          if (this.optionId === 0){
+            obj.type = 'ADD';
+          }else if (this.optionId === 1){
+            obj.type = 'DISP';
+          }
+          this._updatePocket(obj, function(resp){
+            if (resp.code == 'TIMEOUT'){
+              error.style.display = "block";
+              error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
+            }else{
+              if (resp.status !== 200){
+                error.style.display = "block";
+                error.innerHTML = resp.message;   
+              }else{
+                success.style.display = "block";
+                success.innerHTML = 'La cuenta ha sido actualizada correctamente.';
+                /*
+                setTimeout(function(){
+                  FreezeUI({ text: 'Espera...' }); 
+                  setTimeout(function(){location.href="/my-pockets"} , 100); 
+                } , 1000); 
+                */
+              }
+            } 
+            loader.style.display = "none";
+          }.bind(this));
+        }
+      }
+      _updatePocket(obj, callback){
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathPockets + this.pocketId;
+        xhttp.open("PUT", pathUrl, true);
+        xhttp.setRequestHeader('Content-Type', 'application/json'); 
+        xhttp.withCredentials = true;
+        xhttp.timeout = 5000;
+        xhttp.send(JSON.stringify(obj));
+        xhttp.onload = function() {
+          if (xhttp.readyState === 4) {
+            var data = JSON.parse(xhttp.responseText);
+            data.status = xhttp.status;
+            return callback(data);        
+          } 
+        }
+        xhttp.ontimeout = function () {
+          var data = {
+            code: 'TIMEOUT'
+          };
+          callback(data);
+        };
+      }
+    }
+    window.customElements.define(ModPocket.is, ModPocket);
+  </script>
+</dom-module>

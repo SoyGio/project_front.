@@ -51,6 +51,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           number: Number,
           cardNumber: Number,
           clientId: String,
+          clientName: {
+            type: String,
+            notify: true
+          },
           balance: String,
           pathAccount: {
             type: String,
@@ -63,6 +67,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ready(){
         super.ready();
         this.accountId = sessionStorage.accountId;
+        this.clientName = sessionStorage.clientName;
         var xhttp = new XMLHttpRequest();
         var pathUrl = this.endPoint + this.pathAccount + this.accountId + "?type=DETAIL";
         xhttp.open("GET", pathUrl, false);
@@ -78,10 +83,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }else{
           alert(resp.message);
         }
+
       }
 
       _submitCancel(){
-        location.href = '/my-accounts';
+        FreezeUI({ text: 'Espera...' }); 
+        setTimeout(function(){
+          location.href = '/my-accounts';
+        } , 300); 
       }
 
       _submitUpdate(){
@@ -112,7 +121,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 setTimeout(function(){
                   FreezeUI({ text: 'Espera...' }); 
                   setTimeout(function(){location.href="/my-accounts"} , 100); 
-                } , 1500); 
+                } , 1000); 
               }
             } 
             loader.style.display = "none";

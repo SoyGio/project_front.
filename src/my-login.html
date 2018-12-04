@@ -74,7 +74,8 @@
     </style>
     <div class="container">
       <h2>Inicio de sesión</h2>
-       <iron-form id="formlogin">
+      <iron-a11y-keys target="formLogin" keys="enter" on-keys-pressed="_submitLogin"></iron-a11y-keys>
+      <iron-form id="formLogin">
         <form method="GET" action="#">
           <paper-input class="username" label="Usuario o Email" value='{{username}}' autofocus required></paper-input>
           <paper-input type="password" name="password" label="Contraseña" value='{{password}}' maxlength="10" required ></paper-input>
@@ -127,7 +128,7 @@
         var error = shadow.querySelector('.error'); 
         success.style.display = "none";
         error.style.display = "none";
-        var form1 = this.$.formlogin;
+        var form1 = this.$.formLogin;
         if (form1.validate()){
           var loader = shadow.querySelector('.loader');
           loader.style.display = "block";
@@ -158,7 +159,7 @@
                 setTimeout(function(){
                   FreezeUI({ text: 'Espera...' }); 
                   setTimeout(function(){location.href="/"} , 100); 
-                } , 1500); 
+                } , 1000); 
               }else{
                 error.style.display = "block";
                 error.innerHTML = data.message;

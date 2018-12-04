@@ -16,12 +16,37 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style include="shared-styles">
       :host {
         display: block;
-
         padding: 10px;
       }
     }
     </style>
-
+    <customStyle>
+    <style include="shared-styles2">
+      .table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+      }
+      table, td, tr, th {
+        border-bottom: 1px solid black;
+        text-align: center;
+      }
+      .div-over {
+        overflow-x: auto;
+      }
+      .select{
+        cursor: pointer;
+      }
+      paper-dropdown-menu, paper-listbox {
+        width: 250px;
+      }
+      paper-dropdown-menu {
+        height: 200px;
+        margin: auto;
+        display: block;
+      }
+    </style>
+    </customStyle>
     <div class="card">
       <h1>Crear un apartado</h1>
       <p>Ingresa los datos con los que será aperturada el apartado.</p>
@@ -37,7 +62,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-button on-tap="_submitCancel" >Cancelar</paper-button>
         </form>
       </iron-form>
-      <div class="output"></div>
+      <div class="loader"></div>
+      <div class="success"></div>
+      <div class="error"></div>
     </div>
   </template>
   <script>
@@ -46,6 +73,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get properties() {
         return {
           number: String,
+          clientName: {
+            type: String,
+            notify: true
+          },
           balance: {
             type: Number,
             value: 0.00
@@ -65,10 +96,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ready(){
         super.ready();
         this.number = sessionStorage.number;
+        this.clientName = sessionStorage.clientName;
       }
 
       _submitCancel(){
-        location.href = '/my-pockets';
+        FreezeUI({ text: 'Espera...' }); 
+        setTimeout(function(){
+          location.href = '/my-pockets';
+        }, 500);
       }
 
       _reviewCheck(ev){
@@ -78,28 +113,68 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.allowEdit = true;
           this.$.balancePocket.value = '';
           this.$.balancePocket.focus();
+        }else{
+          this.$.balancePocket.value = '0';
         }
       }
 
       _submitAdd(){
-        this.$.formadd.submit();
-        var data = {
-          number: Number(sessionStorage.number),
-          balance: Number(this.balance)
-        };
+        var shadow = this.shadowRoot;
+        var success = shadow.querySelector('.success');
+        var error = shadow.querySelector('.error'); 
+        success.style.display = "none";
+        error.style.display = "none";
+        let form1 = this.$.formadd;
+        if (form1.validate()){
+          var loader = shadow.querySelector('.loader'); 
+          loader.style.display = "block";
+          var obj = {
+            number: Number(sessionStorage.number),
+            balance: Number(this.balance)
+          };
+          this._addPocket(obj, function(resp){
+            if (resp.code == 'TIMEOUT'){
+              error.style.display = "block";
+              error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
+            }else{
+              if (resp.status !== 200){
+                error.style.display = "block";
+                error.innerHTML = resp.message;   
+              }else{
+                success.style.display = "block";
+                success.innerHTML = 'El apartado fue dado de alta correctamente.';
+                setTimeout(function(){
+                  FreezeUI({ text: 'Espera...' }); 
+                  setTimeout(function(){location.href="/my-pockets"} , 100); 
+                } , 1000); 
+              }
+            } 
+            loader.style.display = "none";
+          }.bind(this));
+        }
+      }
+
+      _addPocket(obj, callback){
         var xhttp = new XMLHttpRequest();
         var pathUrl = this.endPoint + this.pathPockets + this.number;
-        xhttp.open("POST", pathUrl, false);
+        xhttp.open("POST", pathUrl, true);
         xhttp.setRequestHeader('Content-Type', 'application/json'); 
         xhttp.withCredentials = true;
-        xhttp.send(JSON.stringify(data));
-        var resp = JSON.parse(xhttp.responseText);
-        if (xhttp.status === 200){
-          alert('El apartado fue dado de alta correctamente.');
-          location.href = '/my-pockets';
-        }else{
-          alert(resp.message);
+        xhttp.timeout = 5000;
+        xhttp.send(JSON.stringify(obj));
+        xhttp.onload = function() {
+          if (xhttp.readyState === 4) {
+            var data = JSON.parse(xhttp.responseText);
+            data.status = xhttp.status;
+            return callback(data);        
+          } 
         }
+        xhttp.ontimeout = function () {
+          var data = {
+            code: 'TIMEOUT'
+          };
+          callback(data);
+        };
       }
     }
     window.customElements.define(AddPocket.is, AddPocket);

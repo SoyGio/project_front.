@@ -77,6 +77,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.address = resp.address;
           this.birthDate = resp.birthDate;
           this.clientId = resp._id.$oid;
+          sessionStorage.clientName = this.clientName;
+          sessionStorage.removeItem('accountId');
+          sessionStorage.removeItem('number');
         }
       }
       _submitUpdate() {
@@ -110,7 +113,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 setTimeout(function(){
                   FreezeUI({ text: 'Espera...' }); 
                   setTimeout(function(){location.href="/"} , 100); 
-                } , 1500); 
+                } , 1000); 
               }
             } 
             loader.style.display = "none";
