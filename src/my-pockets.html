@@ -75,7 +75,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                   <th scope="row">[[displayIndex(index)]]</th>
                   <td>[[item.number]]</td>
                   <td>[[item.creationDate]]</td>
-                  <td>$[[item.balance]]</td>
+                  <td>$[[_fixedAmount(item.balance)]]</td>
                   <td>
                     <img src="../images/icon-edit.png" width="32px" title="Modificar" class="select" on-click='_updatePocket'  data-id$='[[item._id.$oid]]'>&nbsp;&nbsp;&nbsp;
                     <img src="../images/icon-delete.png" width="32px" title="Eliminar" class="select" on-click='_executeDelete' 
@@ -124,7 +124,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           clientName: {
             type: String,
             notify: true
-          }
+          },
+          pocketId: String
         };
       }
       ready() {
@@ -216,6 +217,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       displayIndex(index){
         return index + 1;
+      }
+
+      _fixedAmount(amount){
+        return amount.toFixed(2);
       }
 
       _updatePocket() {

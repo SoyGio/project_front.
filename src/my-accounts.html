@@ -64,7 +64,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                   <td>[[item.number]]</td>
                   <td>[[item.cardNumber]]</td>
                   <td>[[item.creationDate]]</td>
-                  <td>$[[item.balance]]</td>
+                  <td>$[[_fixedAmount(item.balance)]]</td>
                   <td>
                     <img src="../images/icon-edit.png" width="32px" title="Modificar" class="select" on-click='_updateAccount'
                     data-id$='[[item._id.$oid]]'>&nbsp;&nbsp;&nbsp;
@@ -126,6 +126,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (this.listAccounts.length > 0){
           this.hasAccounts = true;
         }
+      }
+
+      _fixedAmount(amount){
+        return amount.toFixed(2);
       }
 
       displayIndex(index){
