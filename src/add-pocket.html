@@ -54,7 +54,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <form method="get" action="#">
           <paper-input name="number" label="Apartado" value="[[number]]" required readonly></paper-input>
           <paper-checkbox on-change="_reviewCheck">Agregar dinero</paper-checkbox>
-          <paper-input name="balance" label="Saldo" value="{{balance}}" readonly$="[[!allowEdit]]" id="balancePocket" type="number" step="0.01">
+          <paper-input name="balance" label="Saldo" value="{{balance}}" readonly$="[[!allowEdit]]" id="balancePocket" type="number" step="0.01" min="0">
             <div slot="prefix">$</div>
           </paper-input>
           <br>
