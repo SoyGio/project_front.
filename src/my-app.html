@@ -128,6 +128,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <mod-pocket name="mod-pocket" client-id="{{clientId}}" client-name="{{clientName}}" end-point="{{endPoint}}"></mod-pocket>
           <add-pocket name="add-pocket" client-id="{{clientId}}" client-name="{{clientName}}" end-point="{{endPoint}}"></add-pocket>
           <my-movements name="my-movements" client-id="{{clientId}}" client-name="{{clientName}}" end-point="{{endPoint}}"></my-movements>
+          <hi-welcome name="hi-welcome" client-id="{{clientId}}" client-name="{{clientName}}" end-point="{{endPoint}}"></hi-welcome>
           <my-view404 name="view404"></my-view404>
         </iron-pages>
       </app-header-layout>
@@ -149,7 +150,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           clientName: String,
           endPoint: {
             type: String,
-            value: 'https://project-gio.herokuapp.com',
+            value: 'http://127.0.0.1:4000',
             readOnly: true
           },
           numberPocket: {

@@ -25,14 +25,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </customStyle>
     <div class="card">
       <h1>Actualización de la cuenta [[number]]</h1>
-      <p>Ingresa los datos con los que será aperturada la cuenta. <b>El saldo no puede ser actualizado</b></p>
+      <p>Solo podrás actualizar el alias de la cuenta.</p>
        <iron-form id="formupdateac">
         <form method="get" action="#">
-          <paper-input name="number" label="Número de cuenta" value="{{number}}" required id="numberAccount"></paper-input>
-          <paper-input name="cardNumber" label="Número de tarjeta" value="{{cardNumber}}" required></paper-input>
-          <paper-input name="balance" label="Saldo" readOnly value="[[balance]]">
+          <paper-input name="number" label="Número de cuenta" value="[[number]]" required readOnly></paper-input>
+          <paper-input name="cardNumber" label="Número de tarjeta" value="[[cardNumber]]" required readOnly></paper-input>
+          <paper-input name="balance" label="Saldo" readOnly value="[[balance]]" type="number" step="0.01">
              <div slot="prefix">$</div>
           </paper-input>
+          <paper-input name="shortname" label="Alias" value="{{shortname}}" id="shortName" autofocus pattern="[A-Za-z0-9]{1,15}" maxlength="15" auto-validate></paper-input>
           <br>
           <paper-button on-tap="_submitUpdate" raised class="indigo" >Guardar</paper-button>
           <paper-button on-tap="_submitCancel" >Cancelar</paper-button>
@@ -55,12 +56,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             type: String,
             notify: true
           },
+          shortname: String,
           balance: String,
           pathAccount: {
             type: String,
             value: '/accounts/v0/accounts/',
             readOnly: true
-          }
+          },
+          shortname: String
         };
       }
 
@@ -78,12 +81,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (xhttp.status === 200){
           this.number = resp[0].number;
           this.cardNumber = resp[0].cardNumber;
-          this.balance = resp[0].balance;
-          this.$.numberAccount.focus();
+          this.balance = resp[0].balance.toFixed(2);
+          this.shortname = resp[0].shortname;
+          this.$.shortName.focus();
         }else{
           alert(resp.message);
         }
-
       }
 
       _submitCancel(){
@@ -104,8 +107,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var loader = shadow.querySelector('.loader'); 
           loader.style.display = "block";
           var obj = {
-            number: Number(this.number),
-            cardNumber: this.cardNumber
+            number: this.number,
+            cardNumber: this.cardNumber,
+            shortname: this.shortname
           };
           this._updateAccount(obj, function(resp){
             if (resp.code == 'TIMEOUT'){

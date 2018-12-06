@@ -32,7 +32,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
              <div slot="prefix">$</div>
           </paper-input>
           <label>¿Que deseas hacer?</label>&nbsp;&nbsp;<vaadin-combo-box placeholder="Selecciona" items="[[listOptions]]" item-value-path="number" item-label-path="number" on-change='_validOption' required></vaadin-combo-box>
-          <paper-input name="amount" label="Importe" value="{{amount}}" id="amountPocket" required>
+          <paper-input type="number" name="amount" label="Importe" value="{{amount}}" id="amountPocket" auto-validate required step="0.01">
             <div slot="prefix">$</div>
           </paper-input>
           <br><br>
@@ -211,7 +211,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var loader = shadow.querySelector('.loader'); 
           loader.style.display = "block";
           var obj = {
-            number: Number(this.number),
+            number: this.number,
             amount: Number(this.amount)
           };
           if (this.optionId === 0){

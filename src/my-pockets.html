@@ -52,41 +52,44 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <p>Selecciona una cuenta para administrar sus apartados.</p>
       <label>Cuenta: </label><vaadin-combo-box placeholder="Selecciona cuenta" items="[[listAccounts]]" item-value-path="number" item-label-path="number" id='comboAccounts' on-change='_searchPockets'></vaadin-combo-box>
       <br><br>
-      <template is="dom-if" if="{{!hasPockets}}" restamp="true">
-        <p><b>No tienes apartados para mostrar, puedes seleccionar <i>Crear apartado</i> para dar de alta uno.</b></p>
-        <br>
-        <paper-button on-tap="_addPocket" raised class="indigo" >Crear apartado</paper-button>
-      </template>
-      <template is="dom-if" if="{{hasPockets}}" restamp="true">
-        <div class='div-over'>
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Pocket</th>
-                <th scope="col">Fecha de creación</th>
-                <th scope="col">Saldo</th>
-                <th scope="col">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <template is="dom-repeat" items="{{listPockets}}">
+      <template is="dom-if" if="{{showAccounts}}" restamp="true">
+        <template is="dom-if" if="{{!hasPockets}}" restamp="true">
+          <p><b>No tienes apartados para mostrar, puedes seleccionar <i>Crear apartado</i> para dar de alta uno.</b></p>
+          <br>
+          <paper-button on-tap="_addPocket" raised class="indigo" >Crear apartado</paper-button>
+        </template>
+        <template is="dom-if" if="{{hasPockets}}" restamp="true">
+          <div class='div-over'>
+            <table class="table">
+              <thead>
                 <tr>
-                  <th scope="row">[[displayIndex(index)]]</th>
-                  <td>[[item.number]]</td>
-                  <td>[[item.creationDate]]</td>
-                  <td>$[[_fixedAmount(item.balance)]]</td>
-                  <td>
-                    <img src="../images/icon-edit.png" width="32px" title="Modificar" class="select" on-click='_updatePocket'  data-id$='[[item._id.$oid]]'>&nbsp;&nbsp;&nbsp;
-                    <img src="../images/icon-delete.png" width="32px" title="Eliminar" class="select" on-click='_executeDelete' 
-                    data-id$='[[item._id.$oid]]' data-number$='[[item.number]]'>
-                  </td>
+                  <th scope="col">#</th>
+                  <th scope="col">Pocket</th>
+                  <th scope="col">Fecha de creación</th>
+                  <th scope="col">Saldo</th>
+                  <th scope="col">Acciones</th>
                 </tr>
-              </template>
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                <template is="dom-repeat" items="{{listPockets}}">
+                  <tr>
+                    <th scope="row">[[displayIndex(index)]]</th>
+                    <td>[[item.number]]</td>
+                    <td>[[item.creationDate]]</td>
+                    <td>$[[_fixedAmount(item.balance)]]</td>
+                    <td>
+                      <img src="../images/icon-edit.png" width="32px" title="Modificar" class="select" on-click='_updatePocket'  data-id$='[[item._id.$oid]]'>&nbsp;&nbsp;&nbsp;
+                      <img src="../images/icon-delete.png" width="32px" title="Eliminar" class="select" on-click='_executeDelete' 
+                      data-id$='[[item._id.$oid]]' data-number$='[[item.number]]'>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </template>
       </template>
+      
       <br>
       <div class="loader"></div>
       <div class="success"></div>
@@ -124,6 +127,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           clientName: {
             type: String,
             notify: true
+          },
+          showAccounts: {
+            type: Boolean,
+            value : true
           },
           pocketId: String
         };
@@ -232,11 +239,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _searchPockets(ev){
         this.hasPockets = false;
+        this.showAccounts = true;
+        var id = ev.target._focusedIndex;
         var number = ev.target.value;
         var shadow = this.shadowRoot;
         var loader = shadow.querySelector('.loader'); 
         loader.style.display = "block";
-        if (number !== ''){
+        if (id === -1){
+          loader.style.display = "none";
+          this.showAccounts = false;
+        }else {
           sessionStorage.number = number;
           var xhttp = new XMLHttpRequest();
           var pathUrl = this.endPoint + this.pathPockets + number;
@@ -247,7 +259,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             this.listPockets = JSON.parse(xhttp.responseText);
           }else{
             this.listPockets = [];
-            this.hasPockets = false;
           }
           loader.style.display = "none";
           this.hasPockets = this.listPockets.length > 0;

@@ -50,6 +50,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <thead>
               <tr>
                 <th scope="col">#</th>
+                <th scope="col">Alias</th>
                 <th scope="col">Cuenta</th>
                 <th scope="col">Tarjeta</th>
                 <th scope="col">Fecha de creación</th>
@@ -61,12 +62,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               <template is="dom-repeat" items="{{listAccounts}}">
                 <tr>
                   <th scope="row">[[displayIndex(index)]]</th>
+                  <td>[[_validAlias(item.shortname)]]</td>
                   <td>[[item.number]]</td>
                   <td>[[item.cardNumber]]</td>
                   <td>[[item.creationDate]]</td>
                   <td>$[[_fixedAmount(item.balance)]]</td>
                   <td>
-                    <img src="../images/icon-edit.png" width="32px" title="Modificar" class="select" on-click='_updateAccount'
+                    <img src="../images/icon-edit.png" width="32px" title="Editar alias" class="select" on-click='_updateAccount'
                     data-id$='[[item._id.$oid]]'>&nbsp;&nbsp;&nbsp;
                     <img src="../images/icon-delete.png" width="32px" title="Eliminar" class="select" on-click='_executeDelete' 
                     data-id$='[[item._id.$oid]]' data-num$='[[item.number]]'>
@@ -78,7 +80,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </div>
       </template>
       <template is="dom-if" if="{{!hasAccounts}}">
-        <p><b>No tienes cuentas para mostrar, puedes seleccionar <i>Crear cuenta</i> para dar de alta uno.</b></p>
+        <p><b>No tienes cuentas para mostrar, puedes seleccionar <i>Crear cuenta</i> para dar de alta una.</b></p>
       </template>
       <br>
       <paper-button on-tap="_addAccount" raised class="indigo" >Crear cuenta</paper-button>
@@ -130,6 +132,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _fixedAmount(amount){
         return amount.toFixed(2);
+      }
+
+      _validAlias(shortname){
+        if (shortname === '' || shortname === undefined){
+          return '- - - - -';
+        }
+        return shortname;
       }
 
       displayIndex(index){

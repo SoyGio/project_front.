@@ -25,16 +25,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </customStyle>
     <div class="card">
       <h1>Alta de cuenta</h1>
-      <p>A continuación se presenta la información con la que será creada tu cuenta. <br>Inicialmente, la cuenta tendrá un saldo de $1,000.00. Presiona <strong>Guardar</strong> para confirmar los datos y sea creado la cuenta.</p>
+      <p>A continuación se presenta la información con la que será creada tu cuenta. <br>Inicialmente, la cuenta tendrá un saldo de $1,000.00. Presiona <strong>Registrar</strong> para confirmar los datos y sea creada la cuenta.</p>
        <iron-form id="formadd">
         <form method="get" action="#">
-          <paper-input name="number" label="Número de cuenta" readOnly value="{{number}}" required id="numberAccount"></paper-input>
-          <paper-input name="cardNumber" label="Número de tarjeta" readOnly value="{{cardNumber}}" required></paper-input>
-          <paper-input name="balance" label="Saldo" readOnly value="1000" type="Number">
+          <paper-input name="number" label="Número de cuenta" readOnly value="[[number]]" required id="numberAccount"></paper-input>
+          <paper-input name="cardNumber" label="Número de tarjeta" readOnly value="[[cardNumber]]" required></paper-input>
+          <paper-input name="balance" label="Saldo" readOnly value="1000.00" type="Number" type="number" step="0.01">
             <div slot="prefix">$</div>
           </paper-input>
           <br>
-          <paper-button on-tap="_submitAdd" raised class="indigo" >Guardar</paper-button>
+          <paper-button on-tap="_submitAdd" raised class="indigo" >Registrar</paper-button>
           <paper-button on-tap="_submitCancel" >Cancelar</paper-button>
         </form>
       </iron-form>
@@ -65,12 +65,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       ready(){
         super.ready();
-        var account = Math.floor(Math.random() * 9999999999);
-        var media = Math.floor(Math.random() * 99);
-        var tdd = "415231" + media + account;
-        this.number = account;
-        this.cardNumber = tdd;
-        this.clientName = sessionStorage.clientName;
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathAccount + 'getCard';
+        xhttp.open("GET", pathUrl, false);
+        xhttp.setRequestHeader('Content-Type', 'application/json'); 
+        xhttp.withCredentials = true;
+        xhttp.send();
+        if (xhttp.status === 200) {
+          var data = JSON.parse(xhttp.responseText);
+          this.number = data.account;
+          this.cardNumber = data.card;
+          this.clientName = sessionStorage.clientName;       
+        }
       }
 
       _submitCancel(){
@@ -91,7 +97,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var loader = shadow.querySelector('.loader'); 
           loader.style.display = "block";
           var obj = {
-            number: Number(this.number),
+            number: this.number,
             cardNumber: this.cardNumber
           };
           this._addAccount(obj, function(resp){

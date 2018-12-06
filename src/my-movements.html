@@ -133,7 +133,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _getAmount(type, amount){
         if (type === 'C' || type === 'D'){
-          return '$' + amount;
+          return '$' + amount.toFixed(2);
         }else{
           return '- - -';
         }

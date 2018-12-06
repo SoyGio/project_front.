@@ -1,8 +1,9 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-password-input/paper-password-input.html">
 <link href="../FreezeUI/freeze-ui.min.css" type="text/css" rel="stylesheet"/>
 <dom-module id="my-login">
   <template>
@@ -77,8 +78,12 @@
       <iron-a11y-keys target="formLogin" keys="enter" on-keys-pressed="_submitLogin"></iron-a11y-keys>
       <iron-form id="formLogin">
         <form method="GET" action="#">
-          <paper-input class="username" label="Usuario o Email" value='{{username}}' autofocus required></paper-input>
-          <paper-input type="password" name="password" label="Contraseña" value='{{password}}' maxlength="10" required ></paper-input>
+          <paper-input class="username" label="Usuario o Email" value='{{username}}' autofocus required pattern="^[a-zA-Z0-9_.-]*$|[a-zA-Z0-9._-]+@((\[[0-9]\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$" auto-validate maxlength="50">
+            <iron-icon icon="account-box" slot="suffix"></iron-icon>
+          </paper-input>
+          <paper-password-input type="password" name="password" label="Contraseña" value='{{password}}' maxlength="10" char-counter required allowed-pattern="[A-Za-z0-9]" auto-validate>
+            <iron-icon icon="mail" slot="prefix"></iron-icon>
+          </paper-password-input>
           <br>
           <paper-button on-tap="_submitLogin" raised class="indigo">Iniciar</paper-button>
           <a href='register.html' class='register'>Registrarme</a>
@@ -105,7 +110,7 @@
           password: String,
           endpoint: {
             type: String,
-            value: 'https://project-gio.herokuapp.com',
+            value: 'http://127.0.0.1:4000',
             readOnly: true
           },
           pathUsers: {
@@ -158,12 +163,14 @@
                 sessionStorage.clientId = data.clientId;
                 setTimeout(function(){
                   FreezeUI({ text: 'Espera...' }); 
-                  setTimeout(function(){location.href="/"} , 100); 
+                  setTimeout(function(){location.href="/hi-welcome"} , 100); 
                 } , 1000); 
               }else{
                 error.style.display = "block";
                 error.innerHTML = data.message;
-                form1.reset();
+                if (data.code !== undefined && data.code !== 'ERR_REFUSED'){
+                  form1.reset();
+                }
                 shadow.querySelector('.username').focus();
               }
             }

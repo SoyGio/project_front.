@@ -27,10 +27,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <p>A continuación se presentan tus datos personales.</p>
       <iron-form id="formdata">
         <form method="get" action="#">
-          <paper-input name="clientName" label="Nombre" value="{{clientName}}" required id="clientName"></paper-input>
-          <paper-input name="cellphone" label="Teléfono" value="{{phoneNumber}}" required></paper-input>
-          <paper-input name="address" label="Dirección" value="{{address}}" required></paper-input>
-          <paper-input name="birthDate" label="Fecha de nacimiento" value="{{birthDate}}" required type="date"></paper-input>
+          <paper-input name="clientName" label="Nombre" value="{{clientName}}" required id="clientName" pattern="[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+" auto-validate maxlength="100"></paper-input>
+          <paper-input name="cellphone" label="Teléfono" value="{{phoneNumber}}" required auto-validate allowed-pattern="[0-9]"></paper-input>
+          <paper-input name="address" label="Dirección" value="{{address}}" required auto-validate pattern="[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s.]+"></paper-input>
+          <paper-input name="birthDate" label="Fecha de nacimiento" value="{{birthDate}}" required type="date" auto-validate min="1980-01-01" max="[[currentDate]]"></paper-input>
           <br>
           <paper-button on-tap="_submitUpdate" class="indigo" raised>Actualizar</paper-button>
         </form>
@@ -59,6 +59,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             type: String,
             value: '/clients/v0/clients/',
             readOnly: true
+          },
+          currentDate: {
+            type: String,
+            value: ''
           }
         };
       }
@@ -66,7 +70,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ready() {
         super.ready();
         var xhttp = new XMLHttpRequest();
-        var pathUrl = this.endPoint + this.pathClient + this.clientId;
+        var pathUrl = this.endPoint + this.pathClient + this.clientId + "?type=data";
         xhttp.open("GET", pathUrl, false);
         xhttp.withCredentials = true;
         xhttp.send();
@@ -77,9 +81,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.address = resp.address;
           this.birthDate = resp.birthDate;
           this.clientId = resp._id.$oid;
+          this.currentDate = resp.currentDate;
           sessionStorage.clientName = this.clientName;
           sessionStorage.removeItem('accountId');
           sessionStorage.removeItem('number');
+
+        }else{
+          if (confirm('Hay problemas para establecer la conexión. ¿Deseas volver a intentar?')){
+            location.href = 'my-data';
+          }else{
+            sessionStorage.removeItem('clientId');
+            sessionStorage.removeItem('clientName');
+            FreezeUI({ text: 'Saliendo...' }); 
+            setTimeout(function(){
+              location.href = "/login.html";
+            } , 500); 
+          }
         }
       }
       _submitUpdate() {

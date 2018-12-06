@@ -1,0 +1,77 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<dom-module id="hi-welcome">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+    }
+    </style>
+    <div class="card">
+      <h1>[[greeting]]</h1>
+      <p>Bienvenido al administrador de cuentas. Selecciona una opción del menú para comenzar.</p>
+      <p>Presiona <b>Salir</b> si deseas finalizar la sesión.</p>
+    </div>
+  </template>
+
+  <script>
+    class HiWelcome extends Polymer.Element {
+      static get is() { return 'hi-welcome'; }
+      static get properties() {
+        return {
+          clientName: {
+            type: String,
+            notify: true
+          }, 
+          pathClient: {
+            type: String,
+            value: '/clients/v0/clients/',
+            readOnly: true
+          },
+          greeting: {
+            type: String,
+            value: ''
+          }
+        };
+      }
+      ready() {
+        super.ready();
+        var xhttp = new XMLHttpRequest();
+        var pathUrl = this.endPoint + this.pathClient + this.clientId + "?type=welcome";
+        console.log(pathUrl);
+        xhttp.open("GET", pathUrl, false);
+        xhttp.withCredentials = true;
+        xhttp.send();
+        if (xhttp.status == 200) {
+          var resp = JSON.parse(xhttp.responseText);
+          this.clientName = resp.name;
+          this.greeting = resp.greeting;
+          sessionStorage.removeItem('accountId');
+          sessionStorage.removeItem('number');
+        }else{
+          if (confirm('Hay problemas para establecer la conexión. ¿Deseas volver a intentar?')){
+            location.href = 'my-data';
+          }else{
+            sessionStorage.removeItem('clientId');
+            sessionStorage.removeItem('clientName');
+            FreezeUI({ text: 'Saliendo...' }); 
+            setTimeout(function(){
+              location.href = "/login.html";
+            } , 500); 
+          }
+        }
+      }
+    }
+    window.customElements.define(HiWelcome.is, HiWelcome);
+  </script>
+</dom-module>
