@@ -82,26 +82,33 @@
         --paper-checkbox-label-color: var(--paper-blue-700);
         --paper-checkbox-label-checked-color: var(--paper-blue-900);
       }
-
+      ul {
+        margin-block-end: 0;
+      }
     </style>
     <div class="container">
       <h2>Registrate</h2>
-        <ul><li><span>Ingresa tus datos personales:</span></li></ul>
+        <ul><li>Ingresa tus datos personales:</span></ul>
         <iron-form id="formregister">
          <form method="GET" action="#">
-            <paper-input label="Nombre" value='{{name}}' required auto-validate pattern="[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+" auto-validate maxlength="100"></paper-input>
+            <paper-input label="Nombre" value='{{name}}' required auto-validate pattern="[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+" auto-validate maxlength="100" autofocus>
+              <iron-icon icon="icons:create" slot="suffix"></iron-icon>
+            </paper-input>
             <paper-input label="Email" value='{{email}}' required pattern="[a-zA-Z0-9._-]+@((\[[0-9]\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$" auto-validate maxlength="60">
               <iron-icon icon="mail" slot="suffix"></iron-icon>
             </paper-input>
             <paper-input label="Teléfono" value='{{phoneNumber}}' required maxlength="10" char-counter allowed-pattern="[0-9]" auto-validate>
+              <iron-icon icon="icons:settings-phone" slot="suffix"></iron-icon>
             </paper-input>
-            <paper-input label="Dirección" value='{{address}}' required auto-validate pattern="[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s.]+" maxlength="100"></paper-input>
-            <paper-input label="Fecha de nacimiento" value='{{birthDate}}'  type="date" required auto-validate></paper-input>
+            <paper-input label="Dirección" value='{{address}}' required auto-validate pattern="[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s.]+" maxlength="100">
+              <iron-icon icon="icons:create" slot="suffix"></iron-icon>
+            </paper-input>
+            <paper-input label="Fecha de nacimiento" value='{{birthDate}}' required type="date" auto-validate min="1970-01-01" max="[[currentDate]]"></paper-input>
             <br>
-            <ul><li><span>Ingresa los datos con los que podrás iniciar sesión</span></li></ul>
+            <ul><li><span>Ingresa los datos con los que podrás iniciar sesión:</span></li></ul><br>
             <paper-checkbox class="blue" on-tap="_validCheck" >Usar mi correo como usuario de acceso</paper-checkbox>
             <paper-input class="username" label="Usuario" value='{{username}}' required auto-validate pattern='^[a-zA-Z0-9_.-]*$|[a-zA-Z0-9._-]+@((\[[0-9]\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$'>
-              <iron-icon icon="account-box" slot="suffix"></iron-icon>
+              <iron-icon icon="icons:account-box" slot="suffix"></iron-icon>
             </paper-input>
             <paper-password-input type="password" name="password" label="Contraseña" value='{{password}}' maxlength="10" char-counter required pattern="^[a-zA-Z0-9_.-]*$" auto-validate> </paper-password-input>
             <br>
@@ -132,9 +139,9 @@
             value: 'http://127.0.0.1:4000',
             readOnly: true
           },
-          pathUsers: {
+          pathTime: {
             type: String,
-            value: '/users/v0/users',
+            value: '/datetime/v0/date',
             readOnly: true
           },
           pathValidate: {
@@ -147,7 +154,24 @@
             value: '/clients/v0/clients',
             readOnly: true
           },
+          currentDate: {
+            type: String,
+
+          }
         };
+      }
+      
+      ready(){
+        super.ready();
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", this.endpoint + this.pathTime, false);
+        xhttp.setRequestHeader('Content-Type', 'application/json'); 
+        xhttp.withCredentials = true;
+        xhttp.send();
+        if (xhttp.status === 200) {
+          var data = JSON.parse(xhttp.responseText);
+          this.currentDate = data.date;
+        }
       }
       _validCheck(e){
         var shadow = this.shadowRoot;
@@ -165,7 +189,7 @@
           e.target.checked = false;
         }
       }
-      _submitRegister(){        
+      _submitRegister(ev){        
         var shadow = this.shadowRoot;
         var success = shadow.querySelector('.success');
         var error = shadow.querySelector('.error'); 
@@ -173,7 +197,9 @@
         error.style.display = "none";
         var form1 = this.$.formregister;
         this.existUser = true;
+        var button = ev.target;
         if (form1.validate()){
+          button.disabled = true;
           var dataX = {
             name: this.name,
             phoneNumber: this.phoneNumber,
@@ -208,14 +234,14 @@
                     setTimeout(function(){
                       setTimeout(function(){location.href="/login.html"} , 100); 
                       FreezeUI({ text: 'Espere...' }); 
-                    } , 1500); 
+                    } , 1000); 
                   }
                 });
               }
             }   
             loader.style.display = "none";
-          }.bind(this));
-          
+            button.disabled = false;
+          }.bind(this));   
         }             
       }
       validUser(callback){ 

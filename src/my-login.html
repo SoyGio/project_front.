@@ -79,7 +79,7 @@
       <iron-form id="formLogin">
         <form method="GET" action="#">
           <paper-input class="username" label="Usuario o Email" value='{{username}}' autofocus required pattern="^[a-zA-Z0-9_.-]*$|[a-zA-Z0-9._-]+@((\[[0-9]\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$" auto-validate maxlength="50">
-            <iron-icon icon="account-box" slot="suffix"></iron-icon>
+            <iron-icon icon="icons:account-box" slot="suffix"></iron-icon>
           </paper-input>
           <paper-password-input type="password" name="password" label="Contraseña" value='{{password}}' maxlength="10" char-counter required allowed-pattern="[A-Za-z0-9]" auto-validate>
             <iron-icon icon="mail" slot="prefix"></iron-icon>
@@ -100,7 +100,7 @@
      * `my-login`
      */
     if (sessionStorage.clientId !== undefined && sessionStorage.clientId !== ''){
-      location.href = '/my-data';
+      location.href = '/';
     }
     class MyLogin extends Polymer.Element {
       static get is() { return 'my-login'; }
@@ -127,43 +127,30 @@
         }
 
       }
-      _submitLogin(){
+      _submitLogin(ev){
         var shadow = this.shadowRoot;
         var success = shadow.querySelector('.success');
         var error = shadow.querySelector('.error'); 
         success.style.display = "none";
         error.style.display = "none";
         var form1 = this.$.formLogin;
+        var button = ev.target;
         if (form1.validate()){
+          button.disabled = true;
           var loader = shadow.querySelector('.loader');
           loader.style.display = "block";
-          var xhttp = new XMLHttpRequest();
-          var params =  "?username=" + this.username + "&password=" + this.password;
-          xhttp.open("GET", this.endpoint + this.pathUsers + params, true);
-          xhttp.timeout = 5000;
-          xhttp.send(null);
-          xhttp.ontimeout = function (e) {
-            error.style.display = "block";
-            error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
-            loader.style.display = "none";
-          };
-          xhttp.onreadystatechange = function() {//Call a function when the state changes.
-            if (xhttp.status === 0){
+          this.validUser(function(data){
+            if (data.code === 'TIMEOUT'){
               error.style.display = "block";
               error.innerHTML = "Ocurrió un error al procesar tu solicitud. Intenta mas tarde.";
-            }
-            loader.style.display = "none";
-          };
-          xhttp.onload = function() {
-            if (xhttp.readyState === 4) {
-              var data = JSON.parse(xhttp.responseText);
-              if (xhttp.status === 200){
+            }else{
+               if (data.status === 200){
                 success.style.display = "block";
                 success.innerHTML = data.message;
                 sessionStorage.clientId = data.clientId;
                 setTimeout(function(){
                   FreezeUI({ text: 'Espera...' }); 
-                  setTimeout(function(){location.href="/hi-welcome"} , 100); 
+                  setTimeout(function(){location.href = "/"} , 100); 
                 } , 1000); 
               }else{
                 error.style.display = "block";
@@ -173,11 +160,40 @@
                 }
                 shadow.querySelector('.username').focus();
               }
-            }
+            }   
             loader.style.display = "none";
-          };
-
+            button.disabled = false;
+          }.bind(this)); 
         }
+      }
+
+      validUser(callback){ 
+        var xhttp = new XMLHttpRequest();
+        var params =  "?username=" + this.username + "&password=" + this.password;
+        xhttp.open("GET", this.endpoint + this.pathUsers + params, true);
+        xhttp.timeout = 5000;
+        xhttp.send();
+        xhttp.onload = function() {
+          if (xhttp.readyState === 4) {
+            var data = JSON.parse(xhttp.responseText);
+            data.status = xhttp.status;
+            return callback(data);        
+          } 
+        }
+        xhttp.ontimeout = function () {
+          var data = {
+            code: 'TIMEOUT'
+          };
+          callback(data);
+        };
+        xhttp.onreadystatechange = function() {//Call a function when the state changes.
+          if (xhttp.status === 0){
+            var data = {
+              code: 'TIMEOUT'
+            };
+            callback(data);
+          }
+        };
       }
     }
 

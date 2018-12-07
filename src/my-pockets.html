@@ -7,9 +7,6 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-
-<link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="shared-styles.html">
 <dom-module id="my-pockets">
   <template>
     <style include="shared-styles">
@@ -64,7 +61,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               <thead>
                 <tr>
                   <th scope="col">#</th>
-                  <th scope="col">Pocket</th>
+                  <th scope="col">Núm. apartado</th>
                   <th scope="col">Fecha de creación</th>
                   <th scope="col">Saldo</th>
                   <th scope="col">Acciones</th>
@@ -174,7 +171,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var error = shadow.querySelector('.error'); 
         var id = ev.target.getAttribute('data-id');
         var num = ev.target.getAttribute('data-number');
+        var button = ev.target;
         if (confirm("Seguro que quieres eliminar el apartado " + num + "?")){
+          button.disabled = true;
           var loader = shadow.querySelector('.loader'); 
           loader.style.display = "block";
           this._deletePocket(num , function(resp){
@@ -194,6 +193,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 } , 1000); 
               }
               loader.style.display = "none";
+              button.disabled = false;
             } 
           }.bind(this));
         }

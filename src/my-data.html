@@ -7,8 +7,6 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-
-<link rel="import" href="../bower_components/polymer/polymer-element.html">
 <dom-module id="my-data">
   <template>
     <style include="shared-styles">
@@ -27,10 +25,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <p>A continuación se presentan tus datos personales.</p>
       <iron-form id="formdata">
         <form method="get" action="#">
-          <paper-input name="clientName" label="Nombre" value="{{clientName}}" required id="clientName" pattern="[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+" auto-validate maxlength="100"></paper-input>
-          <paper-input name="cellphone" label="Teléfono" value="{{phoneNumber}}" required auto-validate allowed-pattern="[0-9]"></paper-input>
-          <paper-input name="address" label="Dirección" value="{{address}}" required auto-validate pattern="[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s.]+"></paper-input>
-          <paper-input name="birthDate" label="Fecha de nacimiento" value="{{birthDate}}" required type="date" auto-validate min="1980-01-01" max="[[currentDate]]"></paper-input>
+          <paper-input name="clientName" label="Nombre" value="{{clientName}}" required id="clientName" pattern="[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+" auto-validate maxlength="100">
+            <iron-icon icon="icons:create" slot="suffix"></iron-icon>
+          </paper-input>
+          <paper-input name="cellphone" label="Teléfono" value="{{phoneNumber}}" required auto-validate allowed-pattern="[0-9]">
+            <iron-icon icon="icons:settings-phone" slot="suffix"></iron-icon>
+          </paper-input>
+          <paper-input name="address" label="Dirección" value="{{address}}" required auto-validate pattern="[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚ\s.]+">
+            <iron-icon icon="icons:create" slot="suffix"></iron-icon>
+          </paper-input>
+          <paper-input name="birthDate" label="Fecha de nacimiento" value="{{birthDate}}" required type="date" auto-validate min="1970-01-01" max="[[currentDate]]"></paper-input>
           <br>
           <paper-button on-tap="_submitUpdate" class="indigo" raised>Actualizar</paper-button>
         </form>
@@ -99,15 +103,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           }
         }
       }
-      _submitUpdate() {
+      _submitUpdate(ev) {
         var shadow = this.shadowRoot;
         var success = shadow.querySelector('.success');
         var error = shadow.querySelector('.error'); 
         success.style.display = "none";
         error.style.display = "none";
         var form1 = this.$.formdata;
-        
+        var button = ev.target;
         if (form1.validate()){
+          button.disabled = true;
           var loader = shadow.querySelector('.loader'); 
           loader.style.display = "block";
           var obj = {
@@ -129,11 +134,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 success.innerHTML = 'Tus datos han sido actualizados correctamente.';
                 setTimeout(function(){
                   FreezeUI({ text: 'Espera...' }); 
-                  setTimeout(function(){location.href="/"} , 100); 
+                  setTimeout(function(){location.href="/my-data"} , 100); 
                 } , 1000); 
               }
             } 
             loader.style.display = "none";
+            button.disabled = false;
           }.bind(this));
         }  
       }

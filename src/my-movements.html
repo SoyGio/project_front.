@@ -7,11 +7,6 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-
-<link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="shared-styles.html">
-<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
-<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
 <dom-module id="my-movements">
   <template>
     <style include="shared-styles">
@@ -70,6 +65,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             </tbody>
           </table>
         </div>
+        <br>
       </template>
       <template is="dom-if" if="{{!hasMovements}}">
         <p><b>No tienes movimientos para listar.</b></p>

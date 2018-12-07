@@ -7,8 +7,6 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-
-<link rel="import" href="../bower_components/polymer/polymer-element.html">
 <dom-module id="mod-account">
   <template>
     <style include="shared-styles">
@@ -33,7 +31,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-input name="balance" label="Saldo" readOnly value="[[balance]]" type="number" step="0.01">
              <div slot="prefix">$</div>
           </paper-input>
-          <paper-input name="shortname" label="Alias" value="{{shortname}}" id="shortName" autofocus pattern="[A-Za-z0-9]{1,15}" maxlength="15" auto-validate></paper-input>
+          <paper-input name="shortname" label="Alias" value="{{shortname}}" id="shortName" autofocus pattern="[A-Za-z0-9]{1,15}" maxlength="15" auto-validate>
+            <iron-icon icon="create" slot="suffix"></iron-icon>
+          </paper-input>
           <br>
           <paper-button on-tap="_submitUpdate" raised class="indigo" >Guardar</paper-button>
           <paper-button on-tap="_submitCancel" >Cancelar</paper-button>
@@ -96,14 +96,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         } , 300); 
       }
 
-      _submitUpdate(){
+      _submitUpdate(ev){
         var shadow = this.shadowRoot;
         var success = shadow.querySelector('.success');
         var error = shadow.querySelector('.error'); 
         success.style.display = "none";
         error.style.display = "none";
         var form1 = this.$.formupdateac;
+        var button = ev.target;
         if (form1.validate()){
+          button.disabled = true;
           var loader = shadow.querySelector('.loader'); 
           loader.style.display = "block";
           var obj = {
@@ -129,6 +131,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               }
             } 
             loader.style.display = "none";
+            button.disabled = false;
           }.bind(this));
         }
       }

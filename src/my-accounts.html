@@ -7,11 +7,6 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-
-<link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="shared-styles.html">
-<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
-<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
 <dom-module id="my-accounts">
   <template>
     <style include="shared-styles">
@@ -160,7 +155,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         error.style.display = "none";
         var id = ev.target.getAttribute('data-id');
         var num = ev.target.getAttribute('data-num');
+        var button = ev.target;
         if (confirm("Seguro que quieres eliminar la cuenta " + num + "?")){
+          button.disabled = true;
           var loader = shadow.querySelector('.loader'); 
           loader.style.display = "block";
           this._deleteAccount(id, function(resp){
@@ -180,6 +177,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 } , 1000); 
               }
               loader.style.display = "none";
+              button.disabled = true;
             } 
           }.bind(this));
         }

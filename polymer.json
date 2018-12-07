@@ -8,9 +8,11 @@
     "src/mod-account.html",
     "src/my-pockets.html",
     "src/add-pocket.html",
+    "src/mod-pocket.html",
     "src/my-movements.html",
     "src/my-login.html",
     "src/sign-in.html",
+    "src/hi-welcome.html",
     "src/my-view404.html",
     "login.html",
     "register.html"
@@ -31,6 +33,9 @@
     ]
   },
   "builds": [
+    {
+      "preset": "es5-bundled"
+    },
     {
       "preset": "es6-bundled"
     }

@@ -7,8 +7,6 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-
-<link rel="import" href="../bower_components/polymer/polymer-element.html">
 <dom-module id="mod-pocket">
   <template>
     <style include="shared-styles">
@@ -27,7 +25,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <p>Ingresa los datos con los que será aperturada la cuenta. <b>El saldo no puede ser actualizado</b></p>
        <iron-form id="formupdateac">
         <form method="get" action="#">
-          <paper-input name="number" label="Número de apartadp" value="{{number}}" required></paper-input>
+          <paper-input name="number" label="Núm. apartado" value="{{number}}" readOnly required></paper-input>
           <paper-input name="balance" label="Saldo" readOnly value="[[balance]]">
              <div slot="prefix">$</div>
           </paper-input>
@@ -89,6 +87,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       ready(){
         super.ready();
+        this.$.amountPocket.readonly = true;
+        this.$.amountPocket.min = 0;
         this.accountId = sessionStorage.number;
         this.clientName = sessionStorage.clientName;
         var xhttp = new XMLHttpRequest();
@@ -115,22 +115,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       _validOption(ev){
-        this.optionId = ev.target._focusedIndex;
-        this.$.amountPocket.readOnly = false;
+        this.optionId = ev.target._focusedIndex; 
+        this.$.amountPocket.min = 0;
+         this.$.amountPocket.readonly = true;
         this.amount = 0;
         if (this.optionId === 0 || this.optionId === 1){
           this.amount = '';
           this.$.amountPocket.focus();
+          this.$.amountPocket.min = 0.01;
+           this.$.amountPocket.readonly = false;
         }else if (this.optionId === 2){
           this.amount = this.balance;
-          this.$.amountPocket.readOnly = true;
+          this.$.amountPocket.readonly = true;
+          this.$.amountPocket.min = 0;
         }
       }
 
-      _executeOperation(){
+      _executeOperation(ev){
         var shadow = this.shadowRoot;
         var success = shadow.querySelector('.success');
         var error = shadow.querySelector('.error');
+        var button = ev.target;
         if (isNaN(this.amount)){
           error.style.display = "block";
           error.innerHTML = "El importe es incorrecto, verifica.";
@@ -141,18 +146,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             error.style.display = "block";
             error.innerHTML = "Debes seleccionar una opción a realizar.";
           }else if (this.optionId === 0 || this.optionId === 1){
-             this._executeUpdate();
+             this._executeUpdate(button);
           }else if (this.optionId === 2){
-            this._executeDelete();
+            this._executeDelete(button);
           }
         }   
       }
 
-      _executeDelete(){
+      _executeDelete(button){
         var shadow = this.shadowRoot;
         var success = shadow.querySelector('.success');
         var error = shadow.querySelector('.error'); 
         if (confirm("Seguro que quieres eliminar el apartado " + this.number + "?")){
+          button.disabled = true;
           var loader = shadow.querySelector('.loader'); 
           loader.style.display = "block";
           this._deletePocket(this.number , function(resp){
@@ -172,6 +178,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 } , 1000); 
               }
               loader.style.display = "none";
+              button.disabled = false;
             } 
           }.bind(this));
         }
@@ -200,7 +207,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         };
       }
 
-      _executeUpdate(){
+      _executeUpdate(button){
         var shadow = this.shadowRoot;
         var success = shadow.querySelector('.success');
         var error = shadow.querySelector('.error'); 
@@ -208,6 +215,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         error.style.display = "none";
         var form1 = this.$.formupdateac;
         if (form1.validate()){
+          button.disabled = true;
           var loader = shadow.querySelector('.loader'); 
           loader.style.display = "block";
           var obj = {
@@ -229,7 +237,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 error.innerHTML = resp.message;   
               }else{
                 success.style.display = "block";
-                success.innerHTML = 'La cuenta ha sido actualizada correctamente.';
+                success.innerHTML = 'El aparado ha sido actualizado correctamente.';
                 
                 setTimeout(function(){
                   FreezeUI({ text: 'Espera...' }); 
@@ -238,6 +246,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               }
             } 
             loader.style.display = "none";
+            button.disabled = false;
           }.bind(this));
         }
       }
